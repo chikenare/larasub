@@ -2,9 +2,9 @@
 
 namespace Err0r\Larasub;
 
+use Err0r\Larasub\Commands\LarasubSeed;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Err0r\Larasub\Commands\LarasubSeed;
 
 class LarasubServiceProvider extends PackageServiceProvider
 {
@@ -22,7 +22,6 @@ class LarasubServiceProvider extends PackageServiceProvider
                 'create_subscription_feature_usage_table',
             ])
             ->hasCommand(LarasubSeed::class)
-            ->hasTranslations()
-        ;
+            ->hasTranslations();
     }
 }

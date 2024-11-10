@@ -2,13 +2,8 @@
 
 namespace Err0r\Larasub\Database\Seeders;
 
-use App\Enums\Permissions;
-use App\Enums\Roles;
-use App\Models\Permission;
-use App\Models\Role;
 use Err0r\Larasub\Enums\SubscriptionStatus as EnumsSubscriptionStatus;
 use Err0r\Larasub\Models\SubscriptionStatus;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Lang;
 
@@ -21,9 +16,9 @@ class SubscriptionStatusSeeder extends Seeder
     {
         $activeLocales = collect(config('larasub.localization.active'));
         $records = collect(EnumsSubscriptionStatus::cases())
-            ->map(fn($e) => [
+            ->map(fn ($e) => [
                 'slug' => $e->value,
-                'name' => $activeLocales->mapWithKeys(fn($locale) => [
+                'name' => $activeLocales->mapWithKeys(fn ($locale) => [
                     $locale => Lang::get("larasub::subscription.status.{$e->value}", [], $locale),
                 ])->toArray(),
             ])->toArray();

@@ -13,10 +13,10 @@ use Spatie\Translatable\HasTranslations;
 
 class Plan extends Model
 {
-    use HasUuids;
     use HasFactory;
-    use SoftDeletes;
     use HasTranslations;
+    use HasUuids;
+    use SoftDeletes;
 
     public $translatable = ['name', 'description', 'currency'];
 

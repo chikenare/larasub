@@ -9,9 +9,9 @@ use Spatie\Translatable\HasTranslations;
 
 class SubscriptionStatus extends Model
 {
-    use HasUuids;
     use HasFactory;
     use HasTranslations;
+    use HasUuids;
 
     public $translatable = ['name'];
 }
