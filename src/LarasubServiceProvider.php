@@ -4,7 +4,7 @@ namespace Err0r\Larasub;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Err0r\Larasub\Commands\LarasubCommand;
+use Err0r\Larasub\Commands\LarasubSeed;
 
 class LarasubServiceProvider extends PackageServiceProvider
 {
@@ -13,7 +13,16 @@ class LarasubServiceProvider extends PackageServiceProvider
         $package
             ->name('larasub')
             ->hasConfigFile()
-            ->hasMigration('create_larasub_table')
-            ->hasCommand(LarasubCommand::class);
+            ->hasMigrations([
+                'create_plans_table',
+                'create_features_table',
+                'create_plan_features_table',
+                'create_subscription_statuses_table',
+                'create_subscriptions_table',
+                'create_subscription_feature_usage_table',
+            ])
+            ->hasCommand(LarasubSeed::class)
+            ->hasTranslations()
+        ;
     }
 }

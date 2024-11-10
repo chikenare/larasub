@@ -17,8 +17,9 @@
     ],
     "require": {
         "php": "^8.2",
+        "illuminate/contracts": "^10.0||^11.0",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^10.0||^11.0"
+        "spatie/laravel-translatable": "^6.8"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
@@ -36,7 +37,8 @@
     "autoload": {
         "psr-4": {
             "Err0r\\Larasub\\": "src/",
-            "Err0r\\Larasub\\Database\\Factories\\": "database/factories/"
+            "Err0r\\Larasub\\Database\\Factories\\": "database/factories/",
+            "Err0r\\Larasub\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
