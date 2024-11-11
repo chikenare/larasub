@@ -26,10 +26,6 @@ return [
             'name' => env('LARASUB_TABLE_SUBSCRIPTIONS', 'subscriptions'),
             'uuid' => env('LARASUB_TABLE_SUBSCRIPTIONS_UUID', true),
         ],
-        'subscription_statuses' => [
-            'name' => env('LARASUB_TABLE_SUBSCRIPTION_STATUSES', 'subscription_statuses'),
-            'uuid' => env('LARASUB_TABLE_SUBSCRIPTION_STATUSES_UUID', true),
-        ],
         'plan_features' => [
             'name' => env('LARASUB_TABLE_PLANS_FEATURES', 'plan_features'),
         ],
@@ -42,7 +38,6 @@ return [
         'plan' => \Err0r\Larasub\Models\Plan::class,
         'feature' => \Err0r\Larasub\Models\Feature::class,
         'subscription' => \Err0r\Larasub\Models\Subscription::class,
-        'subscription_status' => \Err0r\Larasub\Models\SubscriptionStatus::class,
     ],
 
     'localization' => [

@@ -18,17 +18,20 @@ class Subscription extends Model
 
     protected $fillable = [
         'plan_id',
-        'status_id',
+        'start_at',
+        'end_at',
+        'cancelled_at',
+    ];
+
+    protected $casts = [
+        'start_at' => 'datetime',
+        'end_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function plan(): BelongsTo
     {
         return $this->belongsTo(config('larasub.models.plan'));
-    }
-
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(config('larasub.models.subscription_status'));
     }
 
     public function subscriber(): MorphTo

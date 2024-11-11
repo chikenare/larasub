@@ -12,6 +12,5 @@ class SubscriptionStatus extends Model
     use HasFactory;
     use HasTranslations;
     use HasUuids;
-
     public $translatable = ['name'];
 }

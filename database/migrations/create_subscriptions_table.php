@@ -30,11 +30,9 @@ return new class extends Migration
                 : $table->foreignId('plan_id')
             )->constrained(config('larasub.tables.plans.name'))->cascadeOnDelete();
 
-            (
-                config('larasub.tables.subscription_statuses.uuid')
-                ? $table->foreignUuid('status_id')
-                : $table->foreignId('status_id')
-            )->constrained(config('larasub.tables.subscription_statuses.name'));
+            $table->timestamp('start_at')->nullable();
+            $table->timestamp('end_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
 
             $table->softDeletes();
             $table->timestamps();
