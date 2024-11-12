@@ -22,8 +22,6 @@ return new class extends Migration
             $table->json('name');
             $table->json('description')->nullable();
             $table->string('type');
-            $table->unsignedSmallInteger('reset_period')->nullable();
-            $table->string('reset_period_type')->nullable();
             $table->unsignedMediumInteger('sort_order')->default(0);
 
             $table->softDeletes();

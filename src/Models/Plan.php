@@ -6,7 +6,6 @@ use Err0r\Larasub\Enums\Period;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
@@ -40,15 +39,20 @@ class Plan extends Model
         'sort_order' => 'integer',
     ];
 
-    public function features(): BelongsToMany
+    /**
+     * @return HasMany<PlanFeature>
+     */
+    public function features(): HasMany
     {
-        return $this->belongsToMany(
-            config('larasub.models.feature'),
-            config('larasub.tables.plan_features.name')
-        )->withPivot([
-            'value',
-            'sort_order',
-        ]);
+        return $this->hasMany(config('larasub.models.plan_feature'));
+    }
+
+    /**
+     * @return HasMany<PlanFeature>
+     */
+    public function feature(string $slug): HasMany
+    {
+        return $this->features()->whereHas('feature', fn($q) => $q->where('slug', $slug));
     }
 
     public function subscriptions(): HasMany

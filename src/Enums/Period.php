@@ -4,11 +4,15 @@ namespace Err0r\Larasub\Enums;
 
 enum Period: string
 {
-    const YEAR = 'year';
+    case MINUTE = 'minute';
 
-    const MONTH = 'month';
+    case HOUR = 'hour';
 
-    const WEEK = 'week';
+    case YEAR = 'year';
 
-    const DAY = 'day';
+    case MONTH = 'month';
+
+    case WEEK = 'week';
+
+    case DAY = 'day';
 }

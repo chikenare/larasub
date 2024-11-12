@@ -28,9 +28,11 @@ return [
         ],
         'plan_features' => [
             'name' => env('LARASUB_TABLE_PLANS_FEATURES', 'plan_features'),
+            'uuid' => env('LARASUB_TABLE_PLANS_FEATURES_UUID', true),
         ],
         'subscription_feature_usage' => [
             'name' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGE', 'subscription_feature_usage'),
+            'uuid' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGE_UUID', true),
         ],
     ],
 
@@ -38,6 +40,8 @@ return [
         'plan' => \Err0r\Larasub\Models\Plan::class,
         'feature' => \Err0r\Larasub\Models\Feature::class,
         'subscription' => \Err0r\Larasub\Models\Subscription::class,
+        'plan_feature' => \Err0r\Larasub\Models\PlanFeature::class,
+        'subscription_feature_usage' => \Err0r\Larasub\Models\SubscriptionFeatureUsage::class,
     ],
 
     'localization' => [

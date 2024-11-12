@@ -12,6 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create(config('larasub.tables.subscription_feature_usage.name'), function (Blueprint $table) {
+            if (config('larasub.tables.subscription_feature_usage.uuid')) {
+                $table->uuid('id')->primary();
+            } else {
+                $table->id();
+            }
+
             (
                 config('larasub.tables.subscriptions.uuid')
                 ? $table->foreignUuid('subscription_id')
@@ -27,8 +33,6 @@ return new class extends Migration
             $table->string('value');
 
             $table->timestamps();
-
-            $table->primary(['subscription_id', 'feature_id']);
         });
     }
 

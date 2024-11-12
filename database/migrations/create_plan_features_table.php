@@ -12,6 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create(config('larasub.tables.plan_features.name'), function (Blueprint $table) {
+            if (config('larasub.tables.plan_features.uuid')) {
+                $table->uuid('id')->primary();
+            } else {
+                $table->id();
+            }
+
             (
                 config('larasub.tables.plans.uuid')
                 ? $table->foreignUuid('plan_id')
@@ -25,11 +31,12 @@ return new class extends Migration
             )->constrained(config('larasub.tables.features.name'))->cascadeOnDelete();
 
             $table->string('value')->nullable();
+            $table->json('display_value')->nullable();
+            $table->unsignedSmallInteger('reset_period')->nullable();
+            $table->string('reset_period_type')->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
 
             $table->timestamps();
-
-            $table->primary(['plan_id', 'feature_id']);
         });
     }
 

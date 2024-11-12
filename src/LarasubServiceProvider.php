@@ -20,7 +20,7 @@ class LarasubServiceProvider extends PackageServiceProvider
                 'create_subscriptions_table',
                 'create_subscription_feature_usage_table',
             ])
-            ->hasCommand(LarasubSeed::class)
-            ->hasTranslations();
+            // ->hasTranslations()
+            ->hasCommand(LarasubSeed::class);
     }
 }
