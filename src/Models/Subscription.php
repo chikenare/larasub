@@ -153,7 +153,7 @@ class Subscription extends Model
             throw new \InvalidArgumentException("The feature '$slug' is not consumable");
         }
 
-        $featureUsage = SubscriptionService::featureUsageInPeriod($this, $slug);
+        $featureUsage = SubscriptionService::totalFeatureUsageInPeriod($this, $slug);
 
         return $planFeature->value - $featureUsage;
     }
