@@ -4,15 +4,15 @@ namespace Err0r\Larasub\Traits;
 
 use Carbon\Carbon;
 use Err0r\Larasub\Enums\SubscriptionStatus;
+use Err0r\Larasub\Facades\PlanService;
 use Err0r\Larasub\Models\Plan;
 use Err0r\Larasub\Models\Subscription;
-use Facades\Err0r\Larasub\Services\PeriodService;
 
 trait HasSubscription
 {
     public function subscriptions()
     {
-        return $this->morphMany(config('larasub.subscription_model'), 'subscriber');
+        return $this->morphMany(config('larasub.models.subscription'), 'subscriber');
     }
 
     /**
@@ -34,7 +34,7 @@ trait HasSubscription
 
         $startAt ??= Carbon::now();
         if ($endAt == null && $plan->reset_period !== null && $plan->reset_period_type !== null) {
-            $endAt = $startAt->copy()->addDays(PeriodService::getDays($plan->reset_period, $plan->reset_period_type));
+            $endAt = PlanService::getPlanEndAt($plan, $startAt);
         }
 
         $subscription = $this->subscriptions()->create([

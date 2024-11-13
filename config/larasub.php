@@ -10,9 +10,8 @@ return [
   */
 
     'tables' => [
-        'users' => [
-            'name' => env('LARASUB_TABLE_USERS', 'users'),
-            'uuid' => env('LARASUB_TABLE_USERS_UUID', default: false),
+        'subscribers' => [
+            'uuid' => env('LARASUB_TABLE_SUBSCRIBERS_UUID', default: false),
         ],
         'plans' => [
             'name' => env('LARASUB_TABLE_PLANS', 'plans'),
@@ -30,9 +29,9 @@ return [
             'name' => env('LARASUB_TABLE_PLANS_FEATURES', 'plan_features'),
             'uuid' => env('LARASUB_TABLE_PLANS_FEATURES_UUID', true),
         ],
-        'subscription_feature_usage' => [
-            'name' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGE', 'subscription_feature_usage'),
-            'uuid' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGE_UUID', true),
+        'subscription_feature_usages' => [
+            'name' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGES', 'subscription_feature_usages'),
+            'uuid' => env('LARASUB_TABLE_SUBSCRIPTION_FEATURE_USAGES_UUID', true),
         ],
     ],
 
@@ -41,7 +40,7 @@ return [
         'feature' => \Err0r\Larasub\Models\Feature::class,
         'subscription' => \Err0r\Larasub\Models\Subscription::class,
         'plan_feature' => \Err0r\Larasub\Models\PlanFeature::class,
-        'subscription_feature_usage' => \Err0r\Larasub\Models\SubscriptionFeatureUsage::class,
+        'subscription_feature_usages' => \Err0r\Larasub\Models\SubscriptionFeatureUsage::class,
     ],
 
     'localization' => [

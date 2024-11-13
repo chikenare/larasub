@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('larasub.tables.subscription_feature_usage.name'), function (Blueprint $table) {
-            if (config('larasub.tables.subscription_feature_usage.uuid')) {
+        Schema::create(config('larasub.tables.subscription_feature_usages.name'), function (Blueprint $table) {
+            if (config('larasub.tables.subscription_feature_usages.uuid')) {
                 $table->uuid('id')->primary();
             } else {
                 $table->id();
@@ -41,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('larasub.tables.subscription_feature_usage.name'));
+        Schema::dropIfExists(config('larasub.tables.subscription_feature_usages.name'));
     }
 };

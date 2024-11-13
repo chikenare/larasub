@@ -39,6 +39,6 @@ class Feature extends Model
 
     public function subscriptions(): HasMany
     {
-        return $this->hasMany(config('larasub.models.subscription_feature_usage'));
+        return $this->hasMany(config('larasub.models.subscription_feature_usages'));
     }
 }

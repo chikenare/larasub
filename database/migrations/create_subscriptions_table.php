@@ -19,10 +19,10 @@ return new class extends Migration
             }
 
             (
-                config('larasub.tables.subscriber.uuid')
+                config('larasub.tables.subscribers.uuid')
                 ? $table->uuidMorphs('subscriber')
-                : $table->uuid('subscriber')
-            )->constrained(config('larasub.tables.subscriber.name'))->cascadeOnDelete();
+                : $table->morphs('subscriber')
+            );
 
             (
                 config('larasub.tables.plans.uuid')

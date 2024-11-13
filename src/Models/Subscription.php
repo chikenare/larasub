@@ -2,8 +2,10 @@
 
 namespace Err0r\Larasub\Models;
 
+use Carbon\Carbon;
 use Err0r\Larasub\Enums\FeatureType;
-use Facades\Err0r\Larasub\Services\PeriodService;
+use Err0r\Larasub\Facades\PlanService;
+use Err0r\Larasub\Facades\SubscriptionService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,22 +51,29 @@ class Subscription extends Model
      */
     public function featuresUsage(): HasMany
     {
-        return $this->hasMany(config('larasub.models.subscription_feature_usage'));
+        return $this->hasMany(config('larasub.models.subscription_feature_usages'));
     }
 
     /**
-     * @param  string  $slug
      * @return HasMany<SubscriptionFeatureUsage>
      */
     public function featureUsage(string $slug): HasMany
     {
-        return $this->featuresUsage()->whereHas('feature', fn($q) => $q->where('slug', $slug));
+        return $this->featuresUsage()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
+    }
+
+    public function someawesomemethod()
+    {
+        return 'some awesome method';
     }
 
     public function scopeActive($query)
     {
         return $query->where('start_at', '<=', now())
-            ->where('end_at', '>=', now());
+            ->where(
+                fn ($q) => $q->whereNull('end_at')
+                    ->orWhere('end_at', '>=', now())
+            );
     }
 
     public function scopeCancelled($query)
@@ -84,7 +93,7 @@ class Subscription extends Model
 
     public function isActive(): bool
     {
-        return $this->start_at <= now() && $this->end_at >= now();
+        return ! $this->isCancelled() && ! $this->isExpired() && ! $this->isFuture();
     }
 
     public function isCancelled(): bool
@@ -94,7 +103,7 @@ class Subscription extends Model
 
     public function isExpired(): bool
     {
-        return $this->end_at < now();
+        return $this->end_at !== null && $this->end_at < now();
     }
 
     public function isFuture(): bool
@@ -102,35 +111,77 @@ class Subscription extends Model
         return $this->start_at > now();
     }
 
-    public function cancel(): void
+    public function cancel(?bool $immediately = false): void
     {
         $this->cancelled_at = now();
+
+        if ($immediately) {
+            $this->end_at = now();
+        }
+
         $this->save();
     }
 
-    public function resume(): void
+    public function resume(?Carbon $startAt = null, ?Carbon $endAt = null): void
     {
         $this->cancelled_at = null;
+        $this->start_at ??= $startAt;
+        $this->end_at = $endAt ?? PlanService::getPlanEndAt($this->plan, $this->start_at);
         $this->save();
     }
 
-    /**
-     * check if the subscription can use a feature
-     * @param string $slug
-     * @param mixed $value
-     * @return bool
-     */
-    public function canUseFeature(string $slug, $value = null): bool
+    public function feature(string $slug)
+    {
+        return $this->plan->feature($slug)->first();
+    }
+
+    public function hasFeature(string $slug): bool
+    {
+        return $this->plan->feature($slug)->exists();
+    }
+
+    public function remainingFeatureUsage(string $slug): ?int
     {
         /** @var PlanFeature|null */
         $planFeature = $this->plan->feature($slug)->first();
 
         if ($planFeature === null) {
+            throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
+        }
+
+        if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE) {
+            throw new \InvalidArgumentException("The feature '$slug' is not consumable");
+        }
+
+        $featureUsage = SubscriptionService::featureUsageInPeriod($this, $slug);
+
+        return $planFeature->value - $featureUsage;
+    }
+
+    /**
+     * check if the subscription can use a feature
+     *
+     * @param  mixed  $value
+     */
+    public function canUseFeature(string $slug, float $value): bool
+    {
+        if (! $this->isActive()) {
             return false;
         }
 
-        if ($planFeature->type == FeatureType::NON_CONSUMABLE) {
-            return true;
+        if ($value <= 0) {
+            throw new \InvalidArgumentException('Usage value must be greater than 0');
+        }
+
+        /** @var PlanFeature|null */
+        $planFeature = $this->plan->feature($slug)->first();
+
+        if ($planFeature === null) {
+            throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
+        }
+
+        if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE) {
+            return false;
         }
 
         // plan's feature is consumable but unlimited
@@ -138,50 +189,30 @@ class Subscription extends Model
             return true;
         }
 
-        $usages = $this->featureUsage($slug);
-        if ($planFeature->reset_period !== null && $planFeature->reset_period_type !== null) {
-            $resetPeriod = $planFeature->reset_period;
-            $resetPeriodType = $planFeature->reset_period_type;
-            $resetMinutes = PeriodService::getMinutes($resetPeriod, $resetPeriodType);
-            $usages = $usages->where('created_at', '>=', now()->subMinutes($resetMinutes));
-        }
-
-        $featureUsage = $usages->sum('value');
-
-        return $planFeature->value > ($featureUsage + $value);
+        return $this->remainingFeatureUsage($slug) >= $value;
     }
 
     /**
      * create a new subscription feature usage record (if applicable)
-     * @param string $slug
-     * @param mixed $value
-     * @throws \InvalidArgumentException
+     *
+     * @param  mixed  $value
      * @return SubscriptionFeatureUsage
+     *
+     * @throws \InvalidArgumentException
      */
-    public function useFeature(string $slug, $value = null)
+    public function useFeature(string $slug, float $value)
     {
-        /** @var PlanFeature|null */
-        $planFeature = $this->plan->feature($slug)->first();
-
-        if ($planFeature === null) {
-            throw new \InvalidArgumentException("The feature with slug $slug does not exist on the plan");
-        }
-
         if (! $this->canUseFeature($slug, $value)) {
-            throw new \InvalidArgumentException("The feature with slug $slug cannot be used");
+            throw new \InvalidArgumentException("The feature '$slug' cannot be used");
         }
 
-        $featureUsage = $this->featureUsage($slug)->first();
-
-        $newUsage = $featureUsage?->value ?? 0;
-        if ($value !== null) {
-            $newUsage += $value;
-        }
+        /** @var PlanFeature */
+        $planFeature = $this->plan->feature($slug)->first();
 
         /** @var SubscriptionFeatureUsage */
         $featureUsage = $this->featuresUsage()->create([
-            'feature_id' => $planFeature->id,
-            'value' => $newUsage,
+            'feature_id' => $planFeature->feature->id,
+            'value' => $value,
         ]);
 
         return $featureUsage;
