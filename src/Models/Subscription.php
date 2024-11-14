@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Err0r\Larasub\Enums\FeatureType;
 use Err0r\Larasub\Facades\PlanService;
 use Err0r\Larasub\Facades\SubscriptionService;
+use Err0r\Larasub\Traits\HasEvent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscription extends Model
 {
+    use HasEvent;
     use HasFactory;
     use HasUuids;
     use SoftDeletes;
@@ -32,6 +34,13 @@ class Subscription extends Model
         'end_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('larasub.tables.subscriptions.name'));
+    }
 
     /**
      * @return BelongsTo<Plan>

@@ -32,6 +32,13 @@ class Feature extends Model
         'sort_order' => 'integer',
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('larasub.tables.features.name'));
+    }
+
     public function plans(): HasMany
     {
         return $this->hasMany(config('larasub.models.plan_feature'));

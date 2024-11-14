@@ -18,6 +18,13 @@ class SubscriptionFeatureUsage extends Model
         'value',
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('larasub.tables.subscription_feature_usages.name'));
+    }
+
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(config('larasub.models.subscription'));

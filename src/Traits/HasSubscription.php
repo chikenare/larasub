@@ -9,15 +9,11 @@ use Err0r\Larasub\Models\PlanFeature;
 use Err0r\Larasub\Models\Subscription;
 use Err0r\Larasub\Models\SubscriptionFeatureUsage;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasSubscription
 {
-    /**
-     * Get all subscriptions for the model.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
-     */
-    public function subscriptions()
+    public function subscriptions(): MorphMany
     {
         return $this->morphMany(config('larasub.models.subscription'), 'subscriber');
     }
@@ -81,7 +77,7 @@ trait HasSubscription
      *
      * @return Collection<PlanFeature>
      */
-    public function feature(string $slug)
+    public function feature(string $slug): Collection
     {
         $subscriptions = $this->subscriptions()->active()->get();
 

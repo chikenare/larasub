@@ -39,6 +39,13 @@ class Plan extends Model
         'sort_order' => 'integer',
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('larasub.tables.plans.name'));
+    }
+
     /**
      * @return HasMany<PlanFeature>
      */
@@ -52,7 +59,7 @@ class Plan extends Model
      */
     public function feature(string $slug): HasMany
     {
-        return $this->features()->whereHas('feature', fn($q) => $q->where('slug', $slug));
+        return $this->features()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
     }
 
     public function subscriptions(): HasMany

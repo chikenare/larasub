@@ -33,6 +33,13 @@ class PlanFeature extends Model
         'reset_period_type' => Period::class,
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('larasub.tables.plan_features.name'));
+    }
+
     public function plan(): BelongsTo
     {
         return $this->belongsTo(config('larasub.models.plan'));
