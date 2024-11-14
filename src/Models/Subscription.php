@@ -135,7 +135,7 @@ class Subscription extends Model
         return $this->plan->feature($slug)->exists();
     }
 
-    public function remainingFeatureUsage(string $slug): ?int
+    public function remainingFeatureUsage(string $slug): ?float
     {
         /** @var PlanFeature|null */
         $planFeature = $this->plan->feature($slug)->first();
@@ -146,6 +146,11 @@ class Subscription extends Model
 
         if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE) {
             throw new \InvalidArgumentException("The feature '$slug' is not consumable");
+        }
+
+        // plan's feature is consumable but unlimited
+        if ($planFeature->value === null) {
+            return floatval(INF);
         }
 
         $featureUsage = SubscriptionService::totalFeatureUsageInPeriod($this, $slug);
@@ -177,11 +182,6 @@ class Subscription extends Model
 
         if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE) {
             return false;
-        }
-
-        // plan's feature is consumable but unlimited
-        if ($planFeature->value === null) {
-            return true;
         }
 
         return $this->remainingFeatureUsage($slug) >= $value;

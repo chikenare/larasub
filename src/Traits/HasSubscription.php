@@ -26,8 +26,6 @@ trait HasSubscription
      * Subscribe the user to a plan.
      *
      * @param  Plan  $plan
-     * @param  Carbon|null  $startAt
-     * @param  Carbon|null  $endAt
      * @return Subscription
      *
      * @throws \InvalidArgumentException
@@ -55,83 +53,77 @@ trait HasSubscription
     }
 
     /**
-     * Get all feature usages for active subscriptions.
+     * Get all feature usages for all subscriptions.
      *
      * @return Collection<SubscriptionFeatureUsage>
      */
-    public function featuresUsage()
+    public function featuresUsage(): Collection
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscriptions = $this->subscriptions()->get();
+
         return $subscriptions->map(fn ($subscription) => $subscription->featuresUsage()->get())->flatten();
     }
 
     /**
-     * Get the usage of a specific feature for active subscriptions.
+     * Get the usage of a specific feature for all subscriptions.
      *
-     * @param  string  $slug
      * @return Collection<SubscriptionFeatureUsage>
      */
-    public function featureUsage(string $slug)
+    public function featureUsage(string $slug): Collection
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscriptions = $this->subscriptions()->get();
+
         return $subscriptions->map(fn ($subscription) => $subscription->featureUsage($slug)->get())->flatten();
     }
 
     /**
      * Get a specific feature for active subscriptions.
      *
-     * @param  string  $slug
      * @return Collection<PlanFeature>
      */
     public function feature(string $slug)
     {
         $subscriptions = $this->subscriptions()->active()->get();
+
         return $subscriptions->filter(fn ($subscription) => $subscription->hasFeature($slug))->map(fn ($subscription) => $subscription->feature($slug));
     }
 
     /**
      * Check if the model has a specific feature.
-     *
-     * @param  string  $slug
-     * @return bool
      */
     public function hasFeature(string $slug): bool
     {
         $subscriptions = $this->subscriptions()->active()->get();
+
         return $subscriptions->some(fn ($subscription) => $subscription->hasFeature($slug));
     }
 
     /**
      * Get the remaining usage of a specific feature for active subscriptions.
-     *
-     * @param  string  $slug
-     * @return int|null
      */
-    public function remainingFeatureUsage(string $slug): ?int
+    public function remainingFeatureUsage(string $slug): ?float
     {
         $subscriptions = $this->subscriptions()->active()->get();
+
         return $subscriptions->map(fn ($subscription) => $subscription->remainingFeatureUsage($slug))->sum();
     }
 
     /**
      * Check if the model can use a specific feature.
-     *
-     * @param  string  $slug
-     * @param  float  $value
-     * @return bool
      */
     public function canUseFeature(string $slug, float $value): bool
     {
         $subscriptions = $this->subscriptions()->active()->get();
+
         return $subscriptions->some(fn ($subscription) => $subscription->canUseFeature($slug, $value));
     }
 
     /**
      * Use a specific feature for active subscriptions.
      *
-     * @param  string  $slug
-     * @param  float  $value
      * @return SubscriptionFeatureUsage
+     *
+     * @throws \InvalidArgumentException
      */
     public function useFeature(string $slug, float $value)
     {
