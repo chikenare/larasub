@@ -62,11 +62,6 @@ class Subscription extends Model
         return $this->featuresUsage()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
     }
 
-    public function someawesomemethod()
-    {
-        return 'some awesome method';
-    }
-
     public function scopeActive($query)
     {
         return $query->where('start_at', '<=', now())
