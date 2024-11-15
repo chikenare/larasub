@@ -5,15 +5,30 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/err0r/larasub/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/err0r/larasub/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/err0r/larasub.svg?style=flat-square)](https://packagist.org/packages/err0r/larasub)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+A powerful and flexible subscription management system for Laravel applications that provides:
 
-## Support us
+✨ **Core Features**
+- 📦 Subscription Plans with tiered pricing
+- 🔄 Flexible billing periods (minute/hour/day/week/month/year)
+- 🎯 Feature-based access control
+- 📊 Usage tracking and limits
+- 🔋 Consumable and non-consumable features
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/larasub.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/larasub)
+⚡ **Key Capabilities**
+- 💳 Subscribe users to plans with custom periods
+- 📈 Track feature usage and quotas
+- ⏰ Built-in subscription lifecycle events
+- 🔄 Cancel/Resume subscription workflows
+- 📅 Period-based feature resets
+- 🌐 Multi-language support (translatable plans/features)
+- 🔍 Feature usage monitoring
+- 🎚️ Customizable usage limits
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+🛠️ **Developer Experience**
+- 🧩 Simple trait-based integration
+- ⚙️ Configurable tables and models
+- 📝 Comprehensive event system
+- 🔌 UUID support out of the box
 
 ## Installation
 
@@ -23,54 +38,193 @@ You can install the package via composer:
 composer require err0r/larasub
 ```
 
-You can publish and run the migrations with:
+Publish the config file with:
+
+```bash
+php artisan vendor:publish --tag="larasub-config"
+```
+
+Publish and run the migrations with:
 
 ```bash
 php artisan vendor:publish --tag="larasub-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
+## Basic Usage
 
-```bash
-php artisan vendor:publish --tag="larasub-config"
-```
-
-This is the contents of the published config file:
+1. Setup the Subscriber Model  
+Add the `HasSubscription` trait to your model:
 
 ```php
-return [
-];
+<?php
+use Err0r\Larasub\Traits\HasSubscription;
+
+class User extends Model
+{
+    use HasSubscription;
+}
 ```
 
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="larasub-views"
-```
-
-## Usage
+2. Create a Subscription
 
 ```php
-$larasub = new Err0r\Larasub();
-echo $larasub->echoPhrase('Hello, Err0r!');
+<?php
+// Get a plan
+$plan = Plan::where('slug', 'basic')->first();
+
+// Subscribe user to the plan
+$user->subscribe($plan);
+
+// Subscribe with custom dates
+$user->subscribe($plan, 
+    startAt: now(), 
+    endAt: now()->addYear()
+);
+```
+
+3. Check Subscription Status
+
+```php
+<?php
+$subscription = $user->subscriptions()->first();
+
+// Check if subscription is active
+$subscription->isActive();
+
+// Check if subscription is cancelled
+$subscription->isCancelled();
+
+// Check if subscription has expired
+$subscription->isExpired();
+```
+
+4. Feature Management
+
+```php
+<?php
+// Check if user has a feature
+$user->hasFeature('unlimited-storage');
+
+// Track feature usage
+$user->useFeature('api-calls', 1);
+
+// Check remaining feature usage
+$user->remainingFeatureUsage('api-calls');
+```
+
+## Advanced Usage
+
+#### Subscription Management
+
+```php
+<?php
+// Get all active subscriptions
+$user->subscriptions()->active()->get();
+
+// Cancel a subscription
+$subscription->cancel();
+
+// Cancel immediately (ends subscription now)
+$subscription->cancel(immediately: true);
+
+// Resume a cancelled subscription
+$subscription->resume(
+    startAt: now(),
+    endAt: now()->addMonth() // Optional. Default: Subscription Start Date + Plan Duration
+);
+```
+
+#### Feature Types & Usage
+
+```php
+<?php
+use Err0r\Larasub\Enums\FeatureType;
+
+// Check feature usage limit
+if ($user->canUseFeature('api-calls', 5)) {
+    // User can make 5 API calls
+}
+
+// Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
+$usage = $user->featureUsage('api-calls');
+
+// Check if feature exists on any active subscription
+$hasFeature = $user->hasFeature('premium-support');
+
+// Get remaining usage across all active subscriptions
+$remaining = $user->remainingFeatureUsage('api-calls');
+```
+
+#### Events
+
+The package dispatches events for subscription lifecycle:
+- `SubscriptionEnded` - When a subscription expires
+- `SubscriptionEndingSoon` - 24 hours before expiration
+
+> By default, the package includes a task schedule that runs every minute to check for subscriptions that have ended or are ending soon, and triggers the corresponding events.   
+> You can modify this schedule in the `larasub.php` configuration file.
+
+```php
+<?php
+
+namespace App\Listeners;
+
+use Err0r\Larasub\Events\SubscriptionEnded;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
+
+class HandleEndedSubscription
+{
+    /**
+     * Handle the event.
+     */
+    public function handle(SubscriptionEnded $event): void
+    {
+        // Handle subscription ending
+    }
+}
+```
+
+#### Period Management
+
+```php
+<?php
+use Err0r\Larasub\Enums\Period;
+
+// Create a plan with monthly reset period
+$plan->update([
+    'reset_period' => 1,
+    'reset_period_type' => Period::MONTH
+]);
+
+// Create a plan with yearly reset period
+$plan->update([
+    'reset_period' => 1, 
+    'reset_period_type' => Period::YEAR
+]);
 ```
 
 ## Testing
+> TODO   
 
 ```bash
 composer test
 ```
 
 ## Changelog
+> TODO   
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Contributing
+> TODO   
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
+> TODO   
 
 Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 

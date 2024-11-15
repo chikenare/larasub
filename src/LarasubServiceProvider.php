@@ -30,7 +30,6 @@ class LarasubServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        // Register scheduler
         $this->app->booted(function () {
             /** @var Schedule */
             $schedule = $this->app->make(Schedule::class);
