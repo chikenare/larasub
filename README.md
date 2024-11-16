@@ -190,26 +190,55 @@ php artisan migrate
     );
     ```
 
-2. **Feature Types & Usage**
+2. **Feature Types & Usage**   
 
-    ```php
-    <?php
-    use Err0r\Larasub\Enums\FeatureType;
+    Feature methods can be called in two ways:
+    - On a specific subscription model - Returns results for just that subscription
+        ```php
+        <?php
+        use Err0r\Larasub\Enums\FeatureType;
 
-    // Check feature usage limit
-    if ($user->canUseFeature('api-calls', 5)) {
-        // User can make 5 API calls
-    }
+        $subscription = $user->subscriptions()->active()->first();
 
-    // Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
-    $usage = $user->featureUsage('api-calls');
+        if ($subscription->canUseFeature('download-requests', 1)) {
+            // User can make 1 API calls on this subscription
+        }
 
-    // Check if feature exists on any active subscription
-    $hasFeature = $user->hasFeature('premium-support');
+        // Get a collection of SubscriptionFeatureUsage for a specific feature on a specific subscription
+        $usage = $subscription->featureUsage('download-requests');
 
-    // Get remaining usage across all active subscriptions
-    $remaining = $user->remainingFeatureUsage('api-calls');
-    ```
+        // Use a feature on a specific subscription
+        $subscription->useFeature('download-requests', 1);
+
+        // Get remaining usage on a specific subscription
+        $remaining = $subscription->remainingFeatureUsage('download-requests');
+
+        // Check if feature exists on a specific subscription
+        $hasFeature = $subscription->hasFeature('platinum-support');
+        ```
+
+    - On the subscriber model - Returns results aggregated across all active subscriptions
+        ```php
+        <?php
+        use Err0r\Larasub\Enums\FeatureType;
+
+        // Check feature usage limit
+        if ($user->canUseFeature('api-calls', 5)) {
+            // User can make 5 API calls
+        }
+
+        // Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
+        $usage = $user->featureUsage('api-calls');
+
+        // Use the feature from the first active and applicable subscription
+        $user->useFeature('api-calls', 5);
+
+        // Check if feature exists on any active subscription
+        $hasFeature = $user->hasFeature('premium-support');
+
+        // Get remaining usage across all active subscriptions
+        $remaining = $user->remainingFeatureUsage('api-calls');
+        ```
 
 3. **Events**
 
