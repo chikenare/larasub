@@ -227,6 +227,16 @@ php artisan migrate
     }
     ```
 
+## Resource Classes
+
+The package provides several resource classes to transform your models into JSON representations:
+
+- [`FeatureResource`](src/Resources/FeatureResource.php): Transforms a feature model.
+- [`PlanResource`](src/Resources/PlanResource.php): Transforms a plan model.
+- [`PlanFeatureResource`](src/Resources/PlanFeatureResource.php): Transforms a plan feature model.
+- [`SubscriptionResource`](src/Resources/SubscriptionResource.php): Transforms a subscription model.
+- [`SubscriptionFeatureUsageResource`](src/Resources/SubscriptionFeatureUsageResource.php): Transforms a subscription feature usage model.
+
 ## Testing
 > TODO   
 
