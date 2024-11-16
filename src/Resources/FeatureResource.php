@@ -16,10 +16,10 @@ class FeatureResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'slug' => $this->slug,
+            // 'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
-            'type' => $this->type,
+            // 'type' => $this->type,
             'sort_order' => $this->sort_order,
         ];
     }
