@@ -148,7 +148,7 @@ class PlanFeatureBuilder
     {
         $featureModel = Feature::where('slug', $this->attributes['slug'])->firstOrFail();
 
-        if ($featureModel->type === FeatureType::CONSUMABLE && $this->attributes['value'] === null) {
+        if ($featureModel->type === FeatureType::CONSUMABLE && ($this->attributes['value'] ?? null) === null) {
             throw new \InvalidArgumentException("The feature '{$this->attributes['slug']}' is consumable and requires a value");
         }
 
