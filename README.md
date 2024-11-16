@@ -215,11 +215,12 @@ php artisan migrate
 
     The package dispatches events for subscription lifecycle:
     - `SubscriptionEnded` - When a subscription expires
-    - `SubscriptionEndingSoon` - 24 hours before expiration
+    - `SubscriptionEndingSoon` - When a subscription is ending soon (configurable in `larasub.php`. Default: 7 days)
 
     > By default, the package includes a task schedule that runs every minute to check for subscriptions that have ended or are ending soon, and triggers the corresponding events.   
     > You can modify this schedule in the `larasub.php` configuration file.
 
+    **Event Listener Example:**
     ```php
     <?php
 
