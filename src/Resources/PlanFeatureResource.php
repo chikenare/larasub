@@ -23,6 +23,8 @@ class PlanFeatureResource extends JsonResource
             'sort_order' => $this->sort_order,
             'plan' => new PlanResource($this->whenLoaded('plan')),
             'feature' => new FeatureResource($this->whenLoaded('feature')),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

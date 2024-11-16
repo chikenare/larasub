@@ -22,6 +22,8 @@ class SubscriptionResource extends JsonResource
             'subscriber' => $this->whenLoaded('subscriber'),
             'plan' => new PlanResource($this->whenLoaded('plan')),
             'features_usage' => SubscriptionFeatureUsageResource::collection($this->whenLoaded('featuresUsage')),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

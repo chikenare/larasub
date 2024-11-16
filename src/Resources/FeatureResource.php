@@ -21,6 +21,8 @@ class FeatureResource extends JsonResource
             'description' => $this->description,
             // 'type' => $this->type,
             'sort_order' => $this->sort_order,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

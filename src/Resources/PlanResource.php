@@ -26,6 +26,8 @@ class PlanResource extends JsonResource
             'reset_period_type' => $this->reset_period_type,
             'sort_order' => $this->sort_order,
             'features' => PlanFeatureResource::collection($this->whenLoaded('features')),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
