@@ -97,7 +97,7 @@ class Subscription extends Model
 
     public function isActive(): bool
     {
-        return ! $this->isCancelled() && ! $this->isExpired() && ! $this->isFuture();
+        return ! $this->isExpired() && ! $this->isFuture();
     }
 
     public function isCancelled(): bool
@@ -119,7 +119,7 @@ class Subscription extends Model
     {
         $this->cancelled_at = now();
 
-        if ($immediately) {
+        if ($immediately || $this->end_at === null) {
             $this->end_at = now();
         }
 
