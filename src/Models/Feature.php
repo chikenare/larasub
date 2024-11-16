@@ -4,6 +4,7 @@ namespace Err0r\Larasub\Models;
 
 use Err0r\Larasub\Builders\FeatureBuilder;
 use Err0r\Larasub\Enums\FeatureType;
+use Err0r\Larasub\Traits\Sluggable;
 use Err0r\Larasub\Traits\Sortable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ class Feature extends Model
     use HasFactory;
     use HasTranslations;
     use HasUuids;
+    use Sluggable;
     use SoftDeletes;
     use Sortable;
 
