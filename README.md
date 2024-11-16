@@ -53,158 +53,181 @@ php artisan migrate
 
 ## Basic Usage
 
-1. Setup the Subscriber Model  
-Add the `HasSubscription` trait to your model:
+1. **Setup the Subscriber Model**  
+   Add the `HasSubscription` trait to your model:
 
-```php
-<?php
-use Err0r\Larasub\Traits\HasSubscription;
+    ```php
+    <?php
+    use Err0r\Larasub\Traits\HasSubscription;
 
-class User extends Model
-{
-    use HasSubscription;
-}
-```
+    class User extends Model
+    {
+        use HasSubscription;
+    }
+    ```
 
-2. Create a Subscription
+2. **Create a Feature**
 
-```php
-<?php
-// Get a plan
-$plan = Plan::where('slug', 'basic')->first();
+    ```php
+    <?php
+    use Err0r\Larasub\Builders\FeatureBuilder;
 
-// Subscribe user to the plan
-$user->subscribe($plan);
+    // Create a new feature
+    $feature = FeatureBuilder::create('api-calls')
+        ->name(['en' => 'API Calls', 'ar' => 'مكالمات API'])
+        ->description(['en' => 'Number of API calls allowed', 'ar' => 'عدد المكالمات المسموح به'])
+        ->consumable()
+        ->sortOrder(1)
+        ->build();
+    ```
 
-// Subscribe with custom dates
-$user->subscribe($plan, 
-    startAt: now(), 
-    endAt: now()->addYear()
-);
-```
+3. **Create a Plan**
 
-3. Check Subscription Status
+    ```php
+    <?php
+    use Err0r\Larasub\Builders\PlanBuilder;
+    use Err0r\Larasub\Enums\Period;
+    use Err0r\Larasub\Enums\FeatureValue;
 
-```php
-<?php
-$subscription = $user->subscriptions()->first();
+    // Create a new plan
+    $plan = PlanBuilder::create('premium')
+        ->name(['en' => 'Premium Plan', 'ar' => 'خطة مميزة'])
+        ->description(['en' => 'Access to premium features', 'ar' => 'الوصول إلى الميزات المميزة'])
+        ->price(99.99, 'USD')
+        ->resetPeriod(1, Period::MONTH)
+        ->addFeature('api-calls', function ($feature) {
+            $feature->value(1000)
+                    ->displayValue(['en' => '1000 API Calls', 'ar' => '1000 مكالمة API'])
+                    ->sortOrder(1);
+        })
+        ->addFeature('premium-support', function ($feature) {
+            $feature->value(FeatureValue::UNLIMITED)
+                    ->displayValue(['en' => 'Unlimited Premium Support', 'ar' => 'دعم مميز غير محدود'])
+                    ->sortOrder(2);
+        })
+        ->build();
+    ```
 
-// Check if subscription is active
-$subscription->isActive();
+4. **Create a Subscription**
 
-// Check if subscription is cancelled
-$subscription->isCancelled();
+    ```php
+    <?php
+    // Get a plan
+    $plan = Plan::where('slug', 'basic')->first();
 
-// Check if subscription has expired
-$subscription->isExpired();
-```
+    // Subscribe user to the plan
+    $user->subscribe($plan);
 
-4. Feature Management
+    // Subscribe with custom dates
+    $user->subscribe($plan, 
+        startAt: now(), 
+        endAt: now()->addYear()
+    );
+    ```
 
-```php
-<?php
-// Check if user has a feature
-$user->hasFeature('unlimited-storage');
+5. **Check Subscription Status**
 
-// Track feature usage
-$user->useFeature('api-calls', 1);
+    ```php
+    <?php
+    $subscription = $user->subscriptions()->first();
 
-// Check remaining feature usage
-$user->remainingFeatureUsage('api-calls');
-```
+    // Check if subscription is active
+    $subscription->isActive();
+
+    // Check if subscription is cancelled
+    $subscription->isCancelled();
+
+    // Check if subscription has expired
+    $subscription->isExpired();
+    ```
+
+6. **Feature Management**
+
+    ```php
+    <?php
+    // Check if user has a feature
+    $user->hasFeature('unlimited-storage');
+
+    // Track feature usage
+    $user->useFeature('api-calls', 1);
+
+    // Check remaining feature usage
+    $user->remainingFeatureUsage('api-calls');
+    ```
 
 ## Advanced Usage
 
-#### Subscription Management
+1. **Subscription Management**
 
-```php
-<?php
-// Get all active subscriptions
-$user->subscriptions()->active()->get();
+    ```php
+    <?php
+    // Get all active subscriptions
+    $user->subscriptions()->active()->get();
 
-// Cancel a subscription
-$subscription->cancel();
+    // Cancel a subscription
+    $subscription->cancel();
 
-// Cancel immediately (ends subscription now)
-$subscription->cancel(immediately: true);
+    // Cancel immediately (ends subscription now)
+    $subscription->cancel(immediately: true);
 
-// Resume a cancelled subscription
-$subscription->resume(
-    startAt: now(),
-    endAt: now()->addMonth() // Optional. Default: Subscription Start Date + Plan Duration
-);
-```
+    // Resume a cancelled subscription
+    $subscription->resume(
+        startAt: now(),
+        endAt: now()->addMonth() // Optional. Default: Subscription Start Date + Plan Duration
+    );
+    ```
 
-#### Feature Types & Usage
+2. **Feature Types & Usage**
 
-```php
-<?php
-use Err0r\Larasub\Enums\FeatureType;
+    ```php
+    <?php
+    use Err0r\Larasub\Enums\FeatureType;
 
-// Check feature usage limit
-if ($user->canUseFeature('api-calls', 5)) {
-    // User can make 5 API calls
-}
-
-// Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
-$usage = $user->featureUsage('api-calls');
-
-// Check if feature exists on any active subscription
-$hasFeature = $user->hasFeature('premium-support');
-
-// Get remaining usage across all active subscriptions
-$remaining = $user->remainingFeatureUsage('api-calls');
-```
-
-#### Events
-
-The package dispatches events for subscription lifecycle:
-- `SubscriptionEnded` - When a subscription expires
-- `SubscriptionEndingSoon` - 24 hours before expiration
-
-> By default, the package includes a task schedule that runs every minute to check for subscriptions that have ended or are ending soon, and triggers the corresponding events.   
-> You can modify this schedule in the `larasub.php` configuration file.
-
-```php
-<?php
-
-namespace App\Listeners;
-
-use Err0r\Larasub\Events\SubscriptionEnded;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
-
-class HandleEndedSubscription
-{
-    /**
-     * Handle the event.
-     */
-    public function handle(SubscriptionEnded $event): void
-    {
-        // Handle subscription ending
+    // Check feature usage limit
+    if ($user->canUseFeature('api-calls', 5)) {
+        // User can make 5 API calls
     }
-}
-```
 
-#### Period Management
+    // Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
+    $usage = $user->featureUsage('api-calls');
 
-```php
-<?php
-use Err0r\Larasub\Enums\Period;
+    // Check if feature exists on any active subscription
+    $hasFeature = $user->hasFeature('premium-support');
 
-// Create a plan with monthly reset period
-$plan->update([
-    'reset_period' => 1,
-    'reset_period_type' => Period::MONTH
-]);
+    // Get remaining usage across all active subscriptions
+    $remaining = $user->remainingFeatureUsage('api-calls');
+    ```
 
-// Create a plan with yearly reset period
-$plan->update([
-    'reset_period' => 1, 
-    'reset_period_type' => Period::YEAR
-]);
-```
+3. **Events**
+
+    The package dispatches events for subscription lifecycle:
+    - `SubscriptionEnded` - When a subscription expires
+    - `SubscriptionEndingSoon` - 24 hours before expiration
+
+    > By default, the package includes a task schedule that runs every minute to check for subscriptions that have ended or are ending soon, and triggers the corresponding events.   
+    > You can modify this schedule in the `larasub.php` configuration file.
+
+    ```php
+    <?php
+
+    namespace App\Listeners;
+
+    use Err0r\Larasub\Events\SubscriptionEnded;
+    use Illuminate\Contracts\Queue\ShouldQueue;
+    use Illuminate\Queue\InteractsWithQueue;
+    use Illuminate\Support\Facades\Log;
+
+    class HandleEndedSubscription
+    {
+        /**
+         * Handle the event.
+         */
+        public function handle(SubscriptionEnded $event): void
+        {
+            // Handle subscription ending
+        }
+    }
+    ```
 
 ## Testing
 > TODO   

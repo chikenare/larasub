@@ -153,12 +153,11 @@ class Subscription extends Model
             throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
         }
 
-        if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE) {
-            throw new \InvalidArgumentException("The feature '$slug' is not consumable");
+        if ($planFeature->feature->type == FeatureType::NON_CONSUMABLE || $planFeature->value === null) {
+            throw new \InvalidArgumentException("The feature '$slug' is not consumable or has no value");
         }
 
-        // plan's feature is consumable but unlimited
-        if ($planFeature->value === null) {
+        if ($planFeature->isUnlimited()) {
             return floatval(INF);
         }
 

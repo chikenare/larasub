@@ -2,6 +2,7 @@
 
 namespace Err0r\Larasub\Models;
 
+use Err0r\Larasub\Builders\FeatureBuilder;
 use Err0r\Larasub\Enums\FeatureType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,5 +48,10 @@ class Feature extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(config('larasub.models.subscription_feature_usages'));
+    }
+
+    public static function builder(string $slug): FeatureBuilder
+    {
+        return FeatureBuilder::create($slug);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Err0r\Larasub\Models;
 
+use Err0r\Larasub\Builders\PlanBuilder;
 use Err0r\Larasub\Enums\Period;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -65,5 +66,10 @@ class Plan extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(config('larasub.models.subscription'));
+    }
+
+    public static function builder(string $slug): PlanBuilder
+    {
+        return PlanBuilder::create($slug);
     }
 }

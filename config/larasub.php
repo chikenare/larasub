@@ -14,6 +14,7 @@ return [
 
     'scheduling' => [
         'enabled' => env('LARASUB_SCHEDULING_ENABLED', true),
+        'ending_soon_days' => env('LARASUB_SCHEDULING_ENDING_SOON_DAYS', 7),
     ],
 
     /*
@@ -78,23 +79,5 @@ return [
         'plan_feature' => \Err0r\Larasub\Models\PlanFeature::class,
         'subscription_feature_usages' => \Err0r\Larasub\Models\SubscriptionFeatureUsage::class,
         'event' => \Err0r\Larasub\Models\Event::class,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Localization
-    |--------------------------------------------------------------------------
-    |
-    | Configure the available languages for the subscription system. Define
-    | which locales are active and available for translation. Default locales
-    | are Arabic (ar) and English (en).
-    |
-    */
-
-    'localization' => [
-        'active' => str(env('LARASUB_LOCALIZATION_ACTIVE', 'ar,en'))
-            ->explode(',')
-            ->map(fn ($locale) => trim($locale))
-            ->toArray(),
     ],
 ];

@@ -2,6 +2,7 @@
 
 namespace Err0r\Larasub\Models;
 
+use Err0r\Larasub\Enums\FeatureValue;
 use Err0r\Larasub\Enums\Period;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,5 +49,10 @@ class PlanFeature extends Model
     public function feature(): BelongsTo
     {
         return $this->belongsTo(config('larasub.models.feature'));
+    }
+
+    public function isUnlimited(): bool
+    {
+        return $this->value === FeatureValue::UNLIMITED->value;
     }
 }
