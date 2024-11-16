@@ -94,7 +94,10 @@ class PlanBuilder
 
         // Attach features
         foreach ($this->features as $feature) {
-            $plan->features()->create($feature);
+            $plan->features()->updateOrCreate(
+                ['feature_id' => $feature['feature_id']],
+                $feature
+            );
         }
 
         return $plan;
