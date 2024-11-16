@@ -157,7 +157,7 @@ class PlanFeatureBuilder
             throw new \InvalidArgumentException("The feature '{$this->attributes['slug']}' is consumable and requires a value");
         }
 
-        $attributes = [
+        return [
             'feature_id' => $featureModel->id,
             'value' => $this->attributes['value'] ?? null,
             'display_value' => $this->attributes['display_value'] ?? null,
@@ -165,10 +165,5 @@ class PlanFeatureBuilder
             'reset_period_type' => $this->attributes['reset_period_type'] ?? null,
             'sort_order' => $this->attributes['sort_order'] ?? null,
         ];
-
-        return array_filter(
-            $attributes, 
-            fn ($value) => $value !== null
-        );
     }
 }
