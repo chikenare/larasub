@@ -87,8 +87,10 @@ class PlanBuilder
 
     public function build(): Plan
     {
-        $plan = new Plan($this->attributes);
-        $plan->save();
+        $plan = Plan::updateOrCreate(
+            ['slug' => $this->attributes['slug']],
+            $this->attributes
+        );
 
         // Attach features
         foreach ($this->features as $feature) {
