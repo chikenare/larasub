@@ -68,6 +68,16 @@ class Plan extends Model
         return $this->hasMany(config('larasub.models.subscription'));
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
     public static function builder(string $slug): PlanBuilder
     {
         return PlanBuilder::create($slug);
