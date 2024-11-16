@@ -71,11 +71,18 @@ php artisan migrate
     use Err0r\Larasub\Builders\FeatureBuilder;
 
     // Create a new feature
-    $feature = FeatureBuilder::create('api-calls')
+    $apiCalls = FeatureBuilder::create('api-calls')
         ->name(['en' => 'API Calls', 'ar' => 'مكالمات API'])
         ->description(['en' => 'Number of API calls allowed', 'ar' => 'عدد المكالمات المسموح به'])
         ->consumable()
         ->sortOrder(1)
+        ->build();
+
+    $apiCallPriority = FeatureBuilder::create('api-call-priority')
+        ->name(['en' => 'API Calls Priority', 'ar' => 'الاولوية في مكالمات الـ API'])
+        ->description(['en' => 'Priority access to API calls', 'ar' => 'الوصول بأولوية إلى مكالمات الـ API'])
+        ->nonConsumable()
+        ->sortOrder(2)
         ->build();
     ```
 
@@ -93,16 +100,21 @@ php artisan migrate
         ->description(['en' => 'Access to premium features', 'ar' => 'الوصول إلى الميزات المميزة'])
         ->price(99.99, 'USD')
         ->resetPeriod(1, Period::MONTH)
-        ->addFeature('api-calls', function ($feature) {
-            $feature->value(1000)
-                    ->displayValue(['en' => '1000 API Calls', 'ar' => '1000 مكالمة API'])
-                    ->sortOrder(1);
-        })
-        ->addFeature('premium-support', function ($feature) {
-            $feature->value(FeatureValue::UNLIMITED)
-                    ->displayValue(['en' => 'Unlimited Premium Support', 'ar' => 'دعم مميز غير محدود'])
-                    ->sortOrder(2);
-        })
+        ->addFeature('api-calls', fn ($feature) => $feature
+            ->value(1000)
+            ->displayValue(['en' => '1000 API Calls', 'ar' => '1000 مكالمة API'])
+            ->sortOrder(1);
+        )
+        ->addFeature('download-requests', fn ($feature) => $feature
+            ->value(FeatureValue::UNLIMITED)
+            ->displayValue(['en' => 'Unlimited Download Requests', 'ar' => 'طلبات تنزيل غير محدودة'])
+            ->sortOrder(2);
+        )
+        ->addFeature('api-call-priority', fn ($feature) => $feature
+            ->value('high')
+            ->displayValue(['en' => 'High Priority API Calls', 'ar' => 'مكالمات API ذات أولوية عالية'])
+            ->sortOrder(3);
+        )
         ->build();
     ```
 
@@ -111,7 +123,7 @@ php artisan migrate
     ```php
     <?php
     // Get a plan
-    $plan = Plan::where('slug', 'basic')->first();
+    $plan = Plan::slug('basic')->first();
 
     // Subscribe user to the plan
     $user->subscribe($plan);
@@ -145,6 +157,9 @@ php artisan migrate
     <?php
     // Check if user has a feature
     $user->hasFeature('unlimited-storage');
+
+    // Check if user can use a feature
+    $user->canUseFeature('api-calls', 1);
 
     // Track feature usage
     $user->useFeature('api-calls', 1);
