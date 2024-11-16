@@ -4,6 +4,7 @@ namespace Err0r\Larasub\Models;
 
 use Err0r\Larasub\Builders\PlanBuilder;
 use Err0r\Larasub\Enums\Period;
+use Err0r\Larasub\Traits\Sortable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Plan extends Model
     use HasTranslations;
     use HasUuids;
     use SoftDeletes;
+    use Sortable;
 
     public $translatable = ['name', 'description', 'currency'];
 

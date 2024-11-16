@@ -4,6 +4,7 @@ namespace Err0r\Larasub\Models;
 
 use Err0r\Larasub\Enums\FeatureValue;
 use Err0r\Larasub\Enums\Period;
+use Err0r\Larasub\Traits\Sortable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ class PlanFeature extends Model
     use HasFactory;
     use HasTranslations;
     use HasUuids;
+    use Sortable;
 
     public $translatable = ['display_value'];
 

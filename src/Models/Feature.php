@@ -4,6 +4,7 @@ namespace Err0r\Larasub\Models;
 
 use Err0r\Larasub\Builders\FeatureBuilder;
 use Err0r\Larasub\Enums\FeatureType;
+use Err0r\Larasub\Traits\Sortable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Feature extends Model
     use HasTranslations;
     use HasUuids;
     use SoftDeletes;
+    use Sortable;
 
     public $translatable = ['name', 'description'];
 
