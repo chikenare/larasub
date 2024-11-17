@@ -36,7 +36,7 @@ class LarasubServiceProvider extends PackageServiceProvider
             $schedule->command('larasub:check-ending-subscriptions')
                 ->everyMinute()
                 ->withoutOverlapping()
-                ->sendOutputTo(storage_path('logs/larasub-check-ending-subscriptions.log'), true)
+                // ->sendOutputTo(storage_path('logs/larasub-check-ending-subscriptions.log'), true)
                 ->when(config('larasub.scheduling.enabled'));
         });
     }
