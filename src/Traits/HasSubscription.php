@@ -49,6 +49,18 @@ trait HasSubscription
     }
 
     /**
+     * Check if the user is subscribed to a plan.
+     *
+     * @param  Plan|string  $plan  The plan or the plan slug
+     */
+    public function subscribed($plan): bool
+    {
+        $plan = $plan instanceof Plan ? $plan : Plan::slug($plan)->first();
+
+        return $this->subscriptions()->active()->where('plan_id', $plan->id)->exists();
+    }
+
+    /**
      * Get all feature usages for all subscriptions.
      *
      * @return Collection<SubscriptionFeatureUsage>
