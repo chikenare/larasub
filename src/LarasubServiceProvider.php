@@ -24,7 +24,7 @@ class LarasubServiceProvider extends PackageServiceProvider
                 'create_events_table',
             ])
             // ->hasTranslations()
-            ->hasCommand(LarasubSeed::class)
+            // ->hasCommand(LarasubSeed::class)
             ->hasCommand(CheckEndingSubscriptions::class);
     }
 
