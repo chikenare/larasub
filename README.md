@@ -87,6 +87,13 @@ php artisan migrate
     ```
 
 3. **Create a Plan**
+    
+    Create subscription plans using the `PlanBuilder` class. When configuring a plan's features, you can specify:
+
+    - Feature values and display names
+    - Consumption mode (consumable vs non-consumable)
+    - Reset intervals (periodic vs fixed)
+    - Additional feature properties
 
     ```php
     <?php
@@ -102,6 +109,7 @@ php artisan migrate
         ->resetPeriod(1, Period::MONTH)
         ->addFeature('api-calls', fn ($feature) => $feature
             ->value(1000)
+            ->resetPeriod(1, Period::DAY)
             ->displayValue(['en' => '1000 API Calls', 'ar' => '1000 مكالمة API'])
             ->sortOrder(1);
         )
