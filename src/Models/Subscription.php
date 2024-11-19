@@ -102,7 +102,7 @@ class Subscription extends Model
 
     public function isActive(): bool
     {
-        return ! $this->isExpired() && ! $this->isFuture();
+        return ! $this->isExpired() && ! $this->isFuture() && ! $this->isInactive() && ! $this->isCancelled();
     }
 
     public function isInactive(): bool
