@@ -30,7 +30,7 @@ return new class extends Migration
                 : $table->foreignId('plan_id')
             )->constrained(config('larasub.tables.plans.name'))->cascadeOnDelete();
 
-            $table->timestamp('start_at');
+            $table->timestamp('start_at')->nullable();
             $table->timestamp('end_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
 

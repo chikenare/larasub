@@ -26,7 +26,7 @@ trait HasSubscription
      *
      * @throws \InvalidArgumentException
      */
-    public function subscribe($plan, ?Carbon $startAt = null, ?Carbon $endAt = null)
+    public function subscribe($plan, ?Carbon $startAt = null, ?Carbon $endAt = null, bool $active = true)
     {
         /** @var Plan */
         $planClass = config('larasub.models.plan');
@@ -34,8 +34,13 @@ trait HasSubscription
             throw new \InvalidArgumentException("The plan must be an instance of $planClass");
         }
 
-        $startAt ??= Carbon::now();
-        if ($endAt == null && $plan->reset_period !== null && $plan->reset_period_type !== null) {
+        $startAt ??= now();
+
+        if (! $active) {
+            $startAt = null;
+        }
+
+        if ($startAt !== null && $endAt === null && $plan->reset_period !== null && $plan->reset_period_type !== null) {
             $endAt = PlanService::getPlanEndAt($plan, $startAt);
         }
 
