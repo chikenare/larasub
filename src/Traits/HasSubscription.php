@@ -61,8 +61,9 @@ trait HasSubscription
     public function subscribed($plan): bool
     {
         $plan = $plan instanceof Plan ? $plan : Plan::slug($plan)->first();
+        $query = $this->subscriptions()->where('plan_id', $plan->id);
 
-        return $this->subscriptions()->active()->where('plan_id', $plan->id)->exists();
+        return $query->active()->exists() || $query->inactive()->exists();
     }
 
     /**
