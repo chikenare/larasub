@@ -128,6 +128,7 @@ class Subscription extends Model
     public function cancel(?bool $immediately = false): void
     {
         $this->cancelled_at = now();
+        $this->start_at ??= now();
 
         if ($immediately || $this->end_at === null) {
             $this->end_at = now();
@@ -141,6 +142,7 @@ class Subscription extends Model
         $this->cancelled_at = null;
         $this->start_at ??= $startAt ?? now();
         $this->end_at = $endAt ?? PlanService::getPlanEndAt($this->plan, $this->start_at);
+
         $this->save();
     }
 
