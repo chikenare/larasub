@@ -228,8 +228,11 @@ php artisan migrate
         // Get remaining usage on a specific subscription
         $remaining = $subscription->remainingFeatureUsage('download-requests');
 
-        // Check if feature exists on a specific subscription
+        // Check if feature exists on a specific subscription (regardless of subscription status)
         $hasFeature = $subscription->hasFeature('platinum-support');
+
+        // Returns true if the feature exists and the subscription is active
+        $hasActiveFeature = $subscription->hasActiveFeature('platinum-support');
         ```
 
     - On the subscriber model - Returns results aggregated across all active subscriptions

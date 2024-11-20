@@ -107,7 +107,7 @@ trait HasSubscription
     }
 
     /**
-     * Check if the model has a specific feature.
+     * Check if the model has a specific feature for active subscriptions.
      */
     public function hasFeature(string $slug): bool
     {
@@ -127,7 +127,7 @@ trait HasSubscription
     }
 
     /**
-     * Check if the model can use a specific feature.
+     * Check if the model can use a specific feature for active subscriptions.
      */
     public function canUseFeature(string $slug, float $value): bool
     {
@@ -137,7 +137,7 @@ trait HasSubscription
     }
 
     /**
-     * Use a specific feature for active subscriptions.
+     * Use a specific feature for the first applicable active subscription.
      *
      * @return SubscriptionFeatureUsage
      *
