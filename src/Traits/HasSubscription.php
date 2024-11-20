@@ -26,7 +26,7 @@ trait HasSubscription
      *
      * @throws \InvalidArgumentException
      */
-    public function subscribe($plan, ?Carbon $startAt = null, ?Carbon $endAt = null, bool $active = true)
+    public function subscribe($plan, ?Carbon $startAt = null, ?Carbon $endAt = null, bool $pending = false)
     {
         /** @var Plan */
         $planClass = config('larasub.models.plan');
@@ -36,7 +36,7 @@ trait HasSubscription
 
         $startAt ??= now();
 
-        if (! $active) {
+        if ($pending) {
             $startAt = null;
         }
 
@@ -65,7 +65,7 @@ trait HasSubscription
             ->wherePlan($plan)
             ->where(fn ($q) => $q
                 ->active()
-                ->orWhere(fn ($q) => $q->Inactive())
+                ->orWhere(fn ($q) => $q->pending())
             )
             ->exists();
     }

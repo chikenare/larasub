@@ -136,8 +136,9 @@ php artisan migrate
     // Subscribe user to the plan
     $user->subscribe($plan);
 
-    // Subscribe user to a plan but make it inactive (useful when processing payments)
-    $user->subscribe($plan, active: false);
+    // Subscribe user to a plan but make it pending (useful when processing payments)
+    // *Pending subscriptions has start_at set to null
+    $user->subscribe($plan, pending: true);
 
     // Subscribe with custom dates
     $user->subscribe($plan, 
@@ -155,8 +156,8 @@ php artisan migrate
     // Check if subscription is active
     $subscription->isActive();
 
-    // Check if subscription is inactive
-    $subscription->isInactive();
+    // Check if subscription is pending
+    $subscription->isPending();
 
     // Check if subscription is cancelled
     $subscription->isCancelled();
@@ -197,7 +198,7 @@ php artisan migrate
     // Cancel immediately (ends subscription now)
     $subscription->cancel(immediately: true);
 
-    // Resume subscription (if cancelled or inactive)
+    // Resume subscription (if cancelled or pending)
     $subscription->resume(
         startAt: now(), // Optional. Default: Now
         endAt: now()->addMonth() // Optional. Default: Subscription Start Date + Plan Duration

@@ -80,7 +80,7 @@ class Subscription extends Model
             );
     }
 
-    public function scopeInactive($query)
+    public function scopePending($query)
     {
         return $query->whereNull('start_at');
     }
@@ -123,10 +123,10 @@ class Subscription extends Model
 
     public function isActive(): bool
     {
-        return ! $this->isExpired() && ! $this->isFuture() && ! $this->isInactive() && ! $this->isCancelled();
+        return ! $this->isExpired() && ! $this->isFuture() && ! $this->isPending() && ! $this->isCancelled();
     }
 
-    public function isInactive(): bool
+    public function isPending(): bool
     {
         return $this->start_at === null;
     }
@@ -146,7 +146,7 @@ class Subscription extends Model
         return $this->start_at > now();
     }
 
-    public function cancel(?bool $immediately = false): void
+    public function cancel(?bool $immediately = false): bool
     {
         $this->cancelled_at = now();
         $this->start_at ??= now();
@@ -155,16 +155,21 @@ class Subscription extends Model
             $this->end_at = now();
         }
 
-        $this->save();
+        return $this->save();
     }
 
-    public function resume(?Carbon $startAt = null, ?Carbon $endAt = null): void
+    public function resume(?Carbon $startAt = null, ?Carbon $endAt = null): bool
     {
         $this->cancelled_at = null;
         $this->start_at ??= $startAt ?? now();
         $this->end_at = $endAt ?? PlanService::getPlanEndAt($this->plan, $this->start_at);
 
-        $this->save();
+        return $this->save();
+    }
+
+    public function activate(): bool
+    {
+        return $this->resume();
     }
 
     public function feature(string $slug)
