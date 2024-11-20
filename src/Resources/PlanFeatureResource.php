@@ -21,8 +21,8 @@ class PlanFeatureResource extends JsonResource
             'reset_period' => $this->reset_period,
             'reset_period_type' => $this->reset_period_type,
             'sort_order' => $this->sort_order,
-            'plan' => new PlanResource($this->whenLoaded('plan')),
-            'feature' => new FeatureResource($this->whenLoaded('feature')),
+            'plan' => new (config('larasub.resources.plan'))($this->whenLoaded('plan')),
+            'feature' => new (config('larasub.resources.feature'))($this->whenLoaded('feature')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

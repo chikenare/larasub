@@ -17,8 +17,8 @@ class SubscriptionFeatureUsageResource extends JsonResource
         return [
             'id' => $this->id,
             'value' => $this->value,
-            'subscription' => new SubscriptionResource($this->whenLoaded('subscription')),
-            'feature' => new FeatureResource($this->whenLoaded('feature')),
+            'subscription' => new (config('larasub.resources.subscription'))($this->whenLoaded('subscription')),
+            'feature' => new (config('larasub.resources.feature'))($this->whenLoaded('feature')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

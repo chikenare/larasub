@@ -20,8 +20,8 @@ class SubscriptionResource extends JsonResource
             'end_at' => $this->end_at,
             'cancelled_at' => $this->cancelled_at,
             'subscriber' => $this->whenLoaded('subscriber'),
-            'plan' => new PlanResource($this->whenLoaded('plan')),
-            'features_usage' => SubscriptionFeatureUsageResource::collection($this->whenLoaded('featuresUsage')),
+            'plan' => new (config('larasub.resources.plan'))($this->whenLoaded('plan')),
+            'features_usage' => config('larasub.resources.subscription_feature_usage')::collection($this->whenLoaded('featuresUsage')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -80,4 +80,23 @@ return [
         'subscription_feature_usages' => \Err0r\Larasub\Models\SubscriptionFeatureUsage::class,
         'event' => \Err0r\Larasub\Models\Event::class,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resources
+    |--------------------------------------------------------------------------
+    |
+    | Resource class mappings for the subscription system. These classes handle
+    | the transformation of models into JSON responses. You can extend or
+    | replace these with your own implementations.
+    |
+    */
+
+    'resources' => [
+        'plan' => \Err0r\Larasub\Resources\PlanResource::class,
+        'feature' => \Err0r\Larasub\Resources\FeatureResource::class,
+        'plan_feature' => \Err0r\Larasub\Resources\PlanFeatureResource::class,
+        'subscription' => \Err0r\Larasub\Resources\SubscriptionResource::class,
+        'subscription_feature_usage' => \Err0r\Larasub\Resources\SubscriptionFeatureUsageResource::class,
+    ],
 ];
