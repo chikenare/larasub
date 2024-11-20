@@ -244,6 +244,19 @@ class Subscription extends Model
     }
 
     /**
+     * Check if the subscription has an active feature.
+     *
+     * This method checks if the subscription has the feature and if it is active.
+     *
+     * @param  string  $slug  The slug identifier of the feature.
+     * @return bool True if the feature is active, false otherwise.
+     */
+    public function hasActiveFeature(string $slug): bool
+    {
+        return $this->hasFeature($slug) && $this->isActive();
+    }
+
+    /**
      * Calculate the remaining usage for a given feature.
      *
      * @param  string  $slug  The slug identifier of the feature.
