@@ -100,6 +100,27 @@ class Subscription extends Model
         return $query->where('start_at', '>', now());
     }
 
+    /**
+     * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
+     */
+    public function scopeWherePlan($query, $plan)
+    {
+        $plan = match (true) {
+            $plan instanceof Plan => $plan,
+            default => Plan::where('slug', $plan)->orWhere('id', $plan)->first(),
+        };
+
+        return $query->where('plan_id', $plan->id);
+    }
+
+    /**
+     * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
+     */
+    public function scopeWhereNotPlan($query, $plan)
+    {
+        return $query->whereNot(fn ($q) => $q->wherePlan($plan));
+    }
+
     public function isActive(): bool
     {
         return ! $this->isExpired() && ! $this->isFuture() && ! $this->isInactive() && ! $this->isCancelled();
