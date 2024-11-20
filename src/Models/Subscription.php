@@ -7,6 +7,7 @@ use Err0r\Larasub\Enums\FeatureType;
 use Err0r\Larasub\Facades\PlanService;
 use Err0r\Larasub\Facades\SubscriptionService;
 use Err0r\Larasub\Traits\HasEvent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -71,7 +72,7 @@ class Subscription extends Model
         return $this->featuresUsage()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('start_at', '<=', now())
             ->where(
@@ -80,30 +81,32 @@ class Subscription extends Model
             );
     }
 
-    public function scopePending($query)
+    public function scopePending(Builder $query): Builder
     {
         return $query->whereNull('start_at');
     }
 
-    public function scopeCancelled($query)
+    public function scopeCancelled(Builder $query): Builder
     {
         return $query->whereNotNull('cancelled_at');
     }
 
-    public function scopeExpired($query)
+    public function scopeExpired(Builder $query): Builder
     {
         return $query->where('end_at', '<', now());
     }
 
-    public function scopeFuture($query)
+    public function scopeFuture(Builder $query): Builder
     {
         return $query->where('start_at', '>', now());
     }
 
     /**
-     * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
+     * Scope a query to only include subscriptions with a specific plan.
+     *
+     * @param  Plan|string  $plan  The plan instance or identifier (slug or id).
      */
-    public function scopeWherePlan($query, $plan)
+    public function scopeWherePlan(Builder $query, $plan): Builder
     {
         $plan = match (true) {
             $plan instanceof Plan => $plan,
@@ -114,38 +117,82 @@ class Subscription extends Model
     }
 
     /**
+     * Scope a query to exclude a specific plan.
+     *
      * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
      */
-    public function scopeWhereNotPlan($query, $plan)
+    public function scopeWhereNotPlan(Builder $query, $plan): Builder
     {
         return $query->whereNot(fn ($q) => $q->wherePlan($plan));
     }
 
+    /**
+     * Determine if the subscription is active.
+     *
+     * A subscription is considered active if it is not expired, not set for a future date,
+     * not pending, and not cancelled.
+     *
+     * @return bool True if the subscription is active, false otherwise.
+     */
     public function isActive(): bool
     {
         return ! $this->isExpired() && ! $this->isFuture() && ! $this->isPending() && ! $this->isCancelled();
     }
 
+    /**
+     * Check if the subscription is pending.
+     *
+     * A subscription is considered pending if the `start_at` attribute is null.
+     *
+     * @return bool True if the subscription is pending, false otherwise.
+     */
     public function isPending(): bool
     {
         return $this->start_at === null;
     }
 
+    /**
+     * Check if the subscription is cancelled.
+     *
+     * This method determines whether the subscription has been cancelled
+     * by checking if the `cancelled_at` attribute is not null.
+     *
+     * @return bool True if the subscription is cancelled, false otherwise.
+     */
     public function isCancelled(): bool
     {
         return $this->cancelled_at !== null;
     }
 
+    /**
+     * Check if the subscription is expired.
+     *
+     * This method determines if the subscription has expired by comparing
+     * the end date of the subscription with the current date and time.
+     *
+     * @return bool True if the subscription is expired, false otherwise.
+     */
     public function isExpired(): bool
     {
         return $this->end_at !== null && $this->end_at < now();
     }
 
+    /**
+     * Determine if the subscription start date is in the future.
+     *
+     * @return bool True if the subscription start date is in the future, false otherwise.
+     */
     public function isFuture(): bool
     {
         return $this->start_at > now();
     }
 
+    /**
+     * Cancel the subscription.
+     *
+     * @param  bool|null  $immediately  Whether to cancel the subscription immediately. Defaults to false.
+     * @return bool Returns true if the subscription was successfully cancelled, false otherwise.
+     */
     public function cancel(?bool $immediately = false): bool
     {
         $this->cancelled_at = now();
@@ -158,6 +205,13 @@ class Subscription extends Model
         return $this->save();
     }
 
+    /**
+     * Resume the subscription by setting the start and end dates.
+     *
+     * @param  Carbon|null  $startAt  The start date of the subscription. If null, the current date and time will be used.
+     * @param  Carbon|null  $endAt  The end date of the subscription. If null, it will be calculated based on the plan.
+     * @return bool Returns true if the subscription was successfully resumed and saved, false otherwise.
+     */
     public function resume(?Carbon $startAt = null, ?Carbon $endAt = null): bool
     {
         $this->cancelled_at = null;
@@ -167,21 +221,36 @@ class Subscription extends Model
         return $this->save();
     }
 
-    public function activate(): bool
-    {
-        return $this->resume();
-    }
-
+    /**
+     * Retrieve the first feature of the subscription's plan by its slug.
+     *
+     * @param  string  $slug  The slug of the feature to retrieve.
+     * @return mixed The first feature matching the given slug.
+     */
     public function feature(string $slug)
     {
         return $this->plan->feature($slug)->first();
     }
 
+    /**
+     * Check if the subscription has a specific feature.
+     *
+     * @param  string  $slug  The slug identifier of the feature.
+     * @return bool True if the feature exists in the subscription plan, false otherwise.
+     */
     public function hasFeature(string $slug): bool
     {
         return $this->plan->feature($slug)->exists();
     }
 
+    /**
+     * Calculate the remaining usage for a given feature.
+     *
+     * @param  string  $slug  The slug identifier of the feature.
+     * @return float|null The remaining usage of the feature, or null if not applicable.
+     *
+     * @throws \InvalidArgumentException If the feature is not part of the plan, is non-consumable, or has no value.
+     */
     public function remainingFeatureUsage(string $slug): ?float
     {
         /** @var PlanFeature|null */
@@ -205,9 +274,18 @@ class Subscription extends Model
     }
 
     /**
-     * check if the subscription can use a feature
+     * Determine if a feature can be used based on its slug and usage value.
      *
-     * @param  mixed  $value
+     * This method checks if the subscription is active, validates the usage value,
+     * and verifies if the feature is part of the plan and is consumable. It then
+     * checks if the remaining feature usage is sufficient for the requested value.
+     *
+     * @param  string  $slug  The slug identifier of the feature.
+     * @param  float  $value  The usage value to check.
+     * @return bool True if the feature can be used, false otherwise.
+     *
+     * @throws \InvalidArgumentException If the usage value is less than or equal to 0,
+     *                                   or if the feature is not part of the plan.
      */
     public function canUseFeature(string $slug, float $value): bool
     {
@@ -234,12 +312,13 @@ class Subscription extends Model
     }
 
     /**
-     * create a new subscription feature usage record (if applicable)
+     * Use a feature of the subscription.
      *
-     * @param  mixed  $value
-     * @return SubscriptionFeatureUsage
+     * @param  string  $slug  The slug identifier of the feature.
+     * @param  float  $value  The value to be used for the feature.
+     * @return SubscriptionFeatureUsage The usage record of the feature.
      *
-     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException If the feature cannot be used.
      */
     public function useFeature(string $slug, float $value)
     {
