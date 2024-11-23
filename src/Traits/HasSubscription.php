@@ -4,6 +4,7 @@ namespace Err0r\Larasub\Traits;
 
 use Carbon\Carbon;
 use Err0r\Larasub\Facades\PlanService;
+use Err0r\Larasub\Facades\SubscriptionService;
 use Err0r\Larasub\Models\Plan;
 use Err0r\Larasub\Models\PlanFeature;
 use Err0r\Larasub\Models\Subscription;
@@ -152,23 +153,13 @@ trait HasSubscription
      *
      * @throws \InvalidArgumentException
      *
-     * @see \Err0r\Larasub\Models\Subscription::nextAvailableFeatureUsage()
+     * @see \Err0r\Larasub\Facades\SubscriptionService::nextAvailableFeatureUsageBySubscriptions()
      */
     public function nextAvailableFeatureUsage(string $slug)
     {
         $subscriptions = $this->subscriptions()->active()->get();
 
-        if ($subscriptions->isEmpty()) {
-            return false;
-        }
-
-        $nextUsages = $subscriptions->map(fn ($subscription) => $subscription->nextAvailableFeatureUsage($slug));
-
-        if ($nextUsages->containsStrict(null)) {
-            return null;
-        }
-
-        return $nextUsages->filter()->sort()->first() ?? false;
+        return SubscriptionService::nextAvailableFeatureUsageBySubscriptions($subscriptions, $slug);
     }
 
     /**

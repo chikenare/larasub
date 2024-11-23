@@ -95,4 +95,29 @@ final class SubscriptionService
 
         return $oldestUsage->addMinutes($resetMinutes);
     }
+
+    /**
+     * Get the next time a feature will be available for use
+     *
+     * @param  iterable<\Err0r\Larasub\Models\Subscription>  $subscriptions
+     * @return \Carbon\Carbon|bool|null
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function nextAvailableFeatureUsageBySubscriptions(iterable $subscriptions, string $slug)
+    {
+        $subscriptions = collect($subscriptions);
+
+        if ($subscriptions->isEmpty()) {
+            return false;
+        }
+
+        $nextUsages = $subscriptions->map(fn ($subscription) => $this->nextAvailableFeatureUsageInPeriod($subscription, $slug));
+
+        if ($nextUsages->containsStrict(null)) {
+            return null;
+        }
+
+        return $nextUsages->filter()->sort()->first() ?? false;
+    }
 }
