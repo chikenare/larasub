@@ -6,6 +6,7 @@ use Err0r\Larasub\Builders\PlanBuilder;
 use Err0r\Larasub\Enums\Period;
 use Err0r\Larasub\Traits\Sluggable;
 use Err0r\Larasub\Traits\Sortable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -67,12 +68,15 @@ class Plan extends Model
         return $this->features()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
     }
 
+    /**
+     * @return HasMany<Subscription>
+     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(config('larasub.models.subscription'));
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }

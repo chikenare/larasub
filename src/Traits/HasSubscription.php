@@ -103,17 +103,35 @@ trait HasSubscription
     {
         $subscriptions = $this->subscriptions()->active()->get();
 
-        return $subscriptions->filter(fn ($subscription) => $subscription->hasFeature($slug))->map(fn ($subscription) => $subscription->feature($slug));
+        return $subscriptions
+            ->filter(fn ($subscription) => $subscription->hasFeature($slug))
+            ->map(fn ($subscription) => $subscription->feature($slug));
+    }
+
+    /**
+     * Get feature from active subscriptions that can be used for a specific value.
+     *
+     * @return Collection<PlanFeature>
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function usableFeature(string $slug, float $value)
+    {
+        $subscriptions = $this->subscriptions()->active()->get();
+
+        return $subscriptions
+            ->filter(fn ($subscription) => $subscription->canUseFeature($slug, $value))
+            ->map(fn ($subscription) => $subscription->feature($slug));
     }
 
     /**
      * Check if the model has a specific feature for active subscriptions.
      */
-    public function hasFeature(string $slug): bool
+    public function hasActiveFeature(string $slug): bool
     {
         $subscriptions = $this->subscriptions()->active()->get();
 
-        return $subscriptions->some(fn ($subscription) => $subscription->hasFeature($slug));
+        return $subscriptions->some(fn ($subscription) => $subscription->hasActiveFeature($slug));
     }
 
     /**
@@ -124,6 +142,33 @@ trait HasSubscription
         $subscriptions = $this->subscriptions()->active()->get();
 
         return $subscriptions->map(fn ($subscription) => $subscription->remainingFeatureUsage($slug))->sum();
+    }
+
+    /**
+     * Get the next time a feature will be available for use
+     *
+     * @param  string  $slug  The feature slug to check
+     * @return \Carbon\Carbon|bool|null
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @see \Err0r\Larasub\Models\Subscription::nextAvailableFeatureUsage()
+     */
+    public function nextAvailableFeatureUsage(string $slug)
+    {
+        $subscriptions = $this->subscriptions()->active()->get();
+
+        if ($subscriptions->isEmpty()) {
+            return false;
+        }
+
+        $nextUsages = $subscriptions->map(fn ($subscription) => $subscription->nextAvailableFeatureUsage($slug));
+
+        if ($nextUsages->containsStrict(null)) {
+            return null;
+        }
+
+        return $nextUsages->filter()->sort()->first() ?? false;
     }
 
     /**

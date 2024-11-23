@@ -28,6 +28,18 @@ A powerful and flexible subscription management system for Laravel applications 
 - 📝 Comprehensive event system
 - 🔌 UUID support out of the box
 
+## Table of Contents
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+- [Configuration](#configuration)
+- [Resource Classes](#resource-classes)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [Security Vulnerabilities](#security-vulnerabilities)
+- [Credits](#credits)
+- [License](#license)
+
 ## Installation
 
 You can install the package via composer:
@@ -51,7 +63,7 @@ php artisan migrate
 
 ## Basic Usage
 
-1. **Setup the Subscriber Model**  
+- **Setup the Subscriber Model**  
    Add the `HasSubscription` trait to your model:
 
     ```php
@@ -64,7 +76,7 @@ php artisan migrate
     }
     ```
 
-2. **Create a Feature**
+- **Create a Feature**
 
     ```php
     <?php
@@ -86,7 +98,7 @@ php artisan migrate
         ->build();
     ```
 
-3. **Create a Plan**
+- **Create a Plan**
     
     Create subscription plans using the `PlanBuilder` class. When configuring a plan's features, you can specify:
 
@@ -126,7 +138,7 @@ php artisan migrate
         ->build();
     ```
 
-4. **Create a Subscription**
+- **Create a Subscription**
 
     ```php
     <?php
@@ -141,13 +153,10 @@ php artisan migrate
     $user->subscribe($plan, pending: true);
 
     // Subscribe with custom dates
-    $user->subscribe($plan, 
-        startAt: now(), 
-        endAt: now()->addYear()
-    );
+    $user->subscribe($plan, startAt: now(),  endAt: now()->addYear());
     ```
 
-5. **Check Subscription Status**
+- **Check Subscription Status**
 
     ```php
     <?php
@@ -166,7 +175,7 @@ php artisan migrate
     $subscription->isExpired();
     ```
 
-6. **Feature Management**
+- **Feature Management**
 
     ```php
     <?php
@@ -185,7 +194,7 @@ php artisan migrate
 
 ## Advanced Usage
 
-1. **Subscription Management**
+- **Subscription Management**
 
     ```php
     <?php
@@ -205,60 +214,60 @@ php artisan migrate
     );
     ```
 
-2. **Feature Types & Usage**   
+- **Subscription Status Checks**
 
-    Feature methods can be called in two ways:
-    - On a specific subscription model - Returns results for just that subscription
-        ```php
-        <?php
-        use Err0r\Larasub\Enums\FeatureType;
+    ```php
+    <?php
+    $subscription = $user->subscriptions()->first();
 
-        $subscription = $user->subscriptions()->active()->first();
+    // Check subscription status
+    $subscription->isActive();    // Not expired, future, pending or cancelled
+    $subscription->isPending();   // Start date is null 
+    $subscription->isCancelled(); // Has cancellation date
+    $subscription->isExpired();   // End date has passed
+    $subscription->isFuture();    // Start date is in the future
 
-        if ($subscription->canUseFeature('download-requests', 1)) {
-            // User can make 1 API calls on this subscription
-        }
+    // Query subscriptions by status
+    $user->subscriptions()->active()->get();
+    $user->subscriptions()->pending()->get();
+    $user->subscriptions()->cancelled()->get();
+    $user->subscriptions()->expired()->get();
+    $user->subscriptions()->future()->get();
 
-        // Get a collection of SubscriptionFeatureUsage for a specific feature on a specific subscription
-        $usage = $subscription->featureUsage('download-requests');
+    // Plan-specific queries
+    $user->subscriptions()->wherePlan($plan)->get();
+    $user->subscriptions()->wherePlan('premium')->get(); // Using plan slug
+    $user->subscriptions()->whereNotPlan($plan)->get();
+    ```
 
-        // Use a feature on a specific subscription
-        $subscription->useFeature('download-requests', 1);
+- **Feature Management**   
 
-        // Get remaining usage on a specific subscription
-        $remaining = $subscription->remainingFeatureUsage('download-requests');
+    ```php
+    <?php
+    // Through subscriber's active subscriptions
+    $user->featuresUsage();
+    $user->featureUsage('api-calls');
+    $user->feature('premium-support');
+    $user->usableFeature('api-calls', 1); // returns collection of PlanFeature that can be used given the passed value
+    $user->hasActiveFeature('unlimited-storage');
+    $user->canUseFeature('api-calls', 1);
+    $user->useFeature('api-calls', 1);
+    $user->remainingFeatureUsage('api-calls');
+    $user->nextAvailableFeatureUsage('api-calls'); // `Carbon` instance of next available usage, `null` if unlimited, or `false` if feature is not resetable
 
-        // Check if feature exists on a specific subscription (regardless of subscription status)
-        $hasFeature = $subscription->hasFeature('platinum-support');
+    // Through specific subscription
+    $subscription->featuresUsage()->get();
+    $subscription->featureUsage('api-calls')->get();
+    $subscription->feature('premium-support');
+    $subscription->hasFeature('premium-support'); // Return true if subscription has the feature (regardless of subscription status)
+    $subscription->hasActiveFeature('premium-support'); // Return true if subscription is active and has the feature
+    $subscription->remainingFeatureUsage('api-calls');
+    $subscription->nextAvailableFeatureUsage('api-calls');
+    $subscription->canUseFeature('api-calls', 1);
+    $subscription->useFeature('api-calls', 1);
+    ```
 
-        // Returns true if the feature exists and the subscription is active
-        $hasActiveFeature = $subscription->hasActiveFeature('platinum-support');
-        ```
-
-    - On the subscriber model - Returns results aggregated across all active subscriptions
-        ```php
-        <?php
-        use Err0r\Larasub\Enums\FeatureType;
-
-        // Check feature usage limit
-        if ($user->canUseFeature('api-calls', 5)) {
-            // User can make 5 API calls
-        }
-
-        // Get a collection of SubscriptionFeatureUsage for a specific feature across all user's subscriptions
-        $usage = $user->featureUsage('api-calls');
-
-        // Use the feature from the first active and applicable subscription
-        $user->useFeature('api-calls', 5);
-
-        // Check if feature exists on any active subscription
-        $hasFeature = $user->hasFeature('premium-support');
-
-        // Get remaining usage across all active subscriptions
-        $remaining = $user->remainingFeatureUsage('api-calls');
-        ```
-
-3. **Events**
+- **Events**
 
     The package dispatches events for subscription lifecycle:
     - `SubscriptionEnded` - When a subscription expires

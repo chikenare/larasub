@@ -287,6 +287,21 @@ class Subscription extends Model
     }
 
     /**
+     * Get the next time a feature will be available for use
+     *
+     * @param  string  $slug  The feature slug to check
+     * @return \Carbon\Carbon|bool|null
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @see \Err0r\Larasub\Services\SubscriptionService::nextAvailableFeatureUsageInPeriod()
+     */
+    public function nextAvailableFeatureUsage(string $slug)
+    {
+        return SubscriptionService::nextAvailableFeatureUsageInPeriod($this, $slug);
+    }
+
+    /**
      * Determine if a feature can be used based on its slug and usage value.
      *
      * This method checks if the subscription is active, validates the usage value,
