@@ -54,6 +54,16 @@ class Feature extends Model
         return $this->hasMany(config('larasub.models.subscription_feature_usages'));
     }
 
+    public function isConsumable(): bool
+    {
+        return $this->type == FeatureType::CONSUMABLE;
+    }
+
+    public function isNonConsumable(): bool
+    {
+        return $this->type == FeatureType::NON_CONSUMABLE;
+    }
+
     public static function builder(string $slug): FeatureBuilder
     {
         return FeatureBuilder::create($slug);

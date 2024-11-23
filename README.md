@@ -244,6 +244,10 @@ php artisan migrate
 
     ```php
     <?php
+    $feature = Feature::slug('api-calls')->first();
+    $feature->isConsumable();
+    $feature->isNonConsumable();
+
     // Through subscriber's active subscriptions
     $user->featuresUsage();
     $user->featureUsage('api-calls');
