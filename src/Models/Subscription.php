@@ -69,7 +69,7 @@ class Subscription extends Model
      */
     public function featureUsage(string $slug): HasMany
     {
-        return $this->featuresUsage()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
+        return $this->featuresUsage()->whereHas('feature', fn ($q) => $q->slug($slug));
     }
 
     public function scopeActive(Builder $query): Builder
@@ -104,13 +104,13 @@ class Subscription extends Model
     /**
      * Scope a query to only include subscriptions with a specific plan.
      *
-     * @param  Plan|string  $plan  The plan instance or identifier (slug or id).
+     * @param  Plan|string  $plan  The plan instance or slug.
      */
     public function scopeWherePlan(Builder $query, $plan): Builder
     {
         $plan = match (true) {
             $plan instanceof Plan => $plan,
-            default => Plan::where('slug', $plan)->orWhere('id', $plan)->first(),
+            default => Plan::slug($plan)->first(),
         };
 
         return $query->where('plan_id', $plan->id);
@@ -119,11 +119,61 @@ class Subscription extends Model
     /**
      * Scope a query to exclude a specific plan.
      *
-     * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
+     * @param  Plan|string  $plan  Plan instance or slug
      */
     public function scopeWhereNotPlan(Builder $query, $plan): Builder
     {
         return $query->whereNot(fn ($q) => $q->wherePlan($plan));
+    }
+
+    /**
+     * Scope a query to only include subscriptions with a specific feature.
+     *
+     * @param  Feature|string  $feature  The feature instance or slug.
+     */
+    public function scopeWhereFeature(Builder $query, $feature): Builder
+    {
+        $feature = match (true) {
+            $feature instanceof Feature => $feature,
+            default => Feature::slug($feature)->first(),
+        };
+
+        return $query->whereHas('plan.features.feature', fn ($q) => $q->where('feature_id', $feature->id));
+    }
+
+    /**
+     * Scope a query to exclude a specific feature.
+     *
+     * @param  Feature|string  $feature  The feature instance or slug.
+     */
+    public function scopeWhereNotFeature(Builder $query, $feature): Builder
+    {
+        return $query->whereNot(fn ($q) => $q->whereFeature($feature));
+    }
+
+    /**
+     * Scope a query to only include subscriptions which includes specific features.
+     *
+     * @param  iterable<string>  $features  The array of feature slugs to include.
+     */
+    public function scopeWhereFeatures(Builder $query, iterable $features): Builder
+    {
+        $features = collect($features);
+        $query->where(function ($q) use ($features) {
+            $features->each(fn ($feature) => $q->whereFeature($feature));
+        });
+
+        return $query;
+    }
+
+    /**
+     * Scope a query to exclude subscriptions which includes specific features.
+     *
+     * @param  iterable<string>  $features  The array of feature slugs to exclude.
+     */
+    public function scopeWhereNotFeatures(Builder $query, iterable $features): Builder
+    {
+        return $query->whereNot(fn ($q) => $q->whereFeatures($features));
     }
 
     /**
@@ -222,14 +272,14 @@ class Subscription extends Model
     }
 
     /**
-     * Retrieve the first feature of the subscription's plan by its slug.
+     * Retrieve the first plan feature of the subscription's plan by its slug.
      *
      * @param  string  $slug  The slug of the feature to retrieve.
-     * @return mixed The first feature matching the given slug.
+     * @return PlanFeature|null The first plan feature matching the given slug.
      */
-    public function feature(string $slug)
+    public function planFeature(string $slug)
     {
-        return $this->plan->feature($slug)->first();
+        return $this->plan->feature($slug);
     }
 
     /**
@@ -240,7 +290,7 @@ class Subscription extends Model
      */
     public function hasFeature(string $slug): bool
     {
-        return $this->plan->feature($slug)->exists();
+        return $this->planFeature($slug) !== null;
     }
 
     /**
@@ -267,7 +317,7 @@ class Subscription extends Model
     public function remainingFeatureUsage(string $slug): ?float
     {
         /** @var PlanFeature|null */
-        $planFeature = $this->plan->feature($slug)->first();
+        $planFeature = $this->planFeature($slug);
 
         if ($planFeature === null) {
             throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
@@ -326,7 +376,7 @@ class Subscription extends Model
         }
 
         /** @var PlanFeature|null */
-        $planFeature = $this->plan->feature($slug)->first();
+        $planFeature = $this->planFeature($slug);
 
         if ($planFeature === null) {
             throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
@@ -355,7 +405,7 @@ class Subscription extends Model
         }
 
         /** @var PlanFeature */
-        $planFeature = $this->plan->feature($slug)->first();
+        $planFeature = $this->planFeature($slug);
 
         /** @var SubscriptionFeatureUsage */
         $featureUsage = $this->featuresUsage()->create([

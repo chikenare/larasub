@@ -2,147 +2,98 @@
 
 namespace Err0r\Larasub\Traits;
 
-use Carbon\Carbon;
-use Err0r\Larasub\Facades\PlanService;
 use Err0r\Larasub\Facades\SubscriptionService;
-use Err0r\Larasub\Models\Plan;
-use Err0r\Larasub\Models\PlanFeature;
+use Err0r\Larasub\Models\Feature;
 use Err0r\Larasub\Models\Subscription;
 use Err0r\Larasub\Models\SubscriptionFeatureUsage;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasSubscription
 {
-    public function subscriptions(): MorphMany
-    {
-        return $this->morphMany(config('larasub.models.subscription'), 'subscriber');
-    }
+    use Subscribable;
 
     /**
-     * Subscribe the user to a plan.
+     * Get the latest active subscription.
      *
-     * @param  Plan  $plan
      * @return Subscription
-     *
-     * @throws \InvalidArgumentException
      */
-    public function subscribe($plan, ?Carbon $startAt = null, ?Carbon $endAt = null, bool $pending = false)
+    public function activeSubscription()
     {
-        /** @var Plan */
-        $planClass = config('larasub.models.plan');
-        if (! ($plan instanceof $planClass)) {
-            throw new \InvalidArgumentException("The plan must be an instance of $planClass");
-        }
-
-        $startAt ??= now();
-
-        if ($pending) {
-            $startAt = null;
-        }
-
-        if ($startAt !== null && $endAt === null && $plan->reset_period !== null && $plan->reset_period_type !== null) {
-            $endAt = PlanService::getPlanEndAt($plan, $startAt);
-        }
-
-        $subscription = $this->subscriptions()->create([
-            'plan_id' => $plan->id,
-            'start_at' => $startAt,
-            'end_at' => $endAt,
-        ]);
-
-        return $subscription;
+        return $this->subscriptions()->active()->latest('start_at')->first();
     }
 
     /**
-     * Check if the user is subscribed to a plan.
-     *
-     * @param  Plan|string  $plan  Plan instance or Plan's ID or slug
+     * Check if the subscriber has an active subscription.
      */
-    public function subscribed($plan): bool
+    public function hasActiveSubscription(): bool
     {
-        return $this
-            ->subscriptions()
-            ->wherePlan($plan)
-            ->where(fn ($q) => $q
-                ->active()
-                ->orWhere(fn ($q) => $q->pending())
-            )
-            ->exists();
+        return $this->activeSubscription() !== null;
     }
 
     /**
-     * Get all feature usages for all subscriptions.
+     * Get features usage for the active subscription.
      *
      * @return Collection<SubscriptionFeatureUsage>
      */
-    public function featuresUsage(): Collection
+    public function featuresUsage()
     {
-        $subscriptions = $this->subscriptions()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions->map(fn ($subscription) => $subscription->featuresUsage()->get())->flatten();
+        return $subscription->featuresUsage()->get();
     }
 
     /**
-     * Get the usage of a specific feature for all subscriptions.
+     * Get the usage of a specific feature for the active subscription.
      *
      * @return Collection<SubscriptionFeatureUsage>
      */
-    public function featureUsage(string $slug): Collection
+    public function featureUsage(string $slug)
     {
-        $subscriptions = $this->subscriptions()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions->map(fn ($subscription) => $subscription->featureUsage($slug)->get())->flatten();
+        return $subscription->featureUsage($slug)->get();
     }
 
     /**
-     * Get a specific feature for active subscriptions.
+     * Get a specific feature for the active subscriptions.
      *
-     * @return Collection<PlanFeature>
+     * @return Feature|null
      */
-    public function feature(string $slug): Collection
+    public function planFeature(string $slug)
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions
-            ->filter(fn ($subscription) => $subscription->hasFeature($slug))
-            ->map(fn ($subscription) => $subscription->feature($slug));
+        return $subscription->planFeature($slug);
     }
 
     /**
-     * Get feature from active subscriptions that can be used for a specific value.
-     *
-     * @return Collection<PlanFeature>
-     *
-     * @throws \InvalidArgumentException
+     * Check if the feature exists in the active subscription.
      */
-    public function usableFeature(string $slug, float $value)
+    public function hasFeature(string $slug): bool
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions
-            ->filter(fn ($subscription) => $subscription->canUseFeature($slug, $value))
-            ->map(fn ($subscription) => $subscription->feature($slug));
+        return $subscription->hasFeature($slug);
     }
 
     /**
-     * Check if the model has a specific feature for active subscriptions.
+     * Check if features exist in the active subscription.
      */
-    public function hasActiveFeature(string $slug): bool
+    public function hasFeatures(iterable $slugs): bool
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions->some(fn ($subscription) => $subscription->hasActiveFeature($slug));
+        return collect($slugs)->every(fn ($slug) => $subscription->hasFeature($slug));
     }
 
     /**
-     * Get the remaining usage of a specific feature for active subscriptions.
+     * Get the remaining usage of a specific feature for the active subscription.
      */
     public function remainingFeatureUsage(string $slug): ?float
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions->map(fn ($subscription) => $subscription->remainingFeatureUsage($slug))->sum();
+        return $subscription->remainingFeatureUsage($slug);
     }
 
     /**
@@ -153,23 +104,23 @@ trait HasSubscription
      *
      * @throws \InvalidArgumentException
      *
-     * @see \Err0r\Larasub\Facades\SubscriptionService::nextAvailableFeatureUsageBySubscriptions()
+     * @see \Err0r\Larasub\Models\Subscription::nextAvailableFeatureUsage
      */
     public function nextAvailableFeatureUsage(string $slug)
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return SubscriptionService::nextAvailableFeatureUsageBySubscriptions($subscriptions, $slug);
+        return $subscription->nextAvailableFeatureUsage($slug);
     }
 
     /**
-     * Check if the model can use a specific feature for active subscriptions.
+     * Check if the feature is available for use in the active subscription.
      */
     public function canUseFeature(string $slug, float $value): bool
     {
-        $subscriptions = $this->subscriptions()->active()->get();
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
-        return $subscriptions->some(fn ($subscription) => $subscription->canUseFeature($slug, $value));
+        return $subscription->canUseFeature($slug, $value);
     }
 
     /**
@@ -181,12 +132,7 @@ trait HasSubscription
      */
     public function useFeature(string $slug, float $value)
     {
-        $subscriptions = $this->subscriptions()->active()->get();
-        $subscription = $subscriptions->first(fn ($subscription) => $subscription->canUseFeature($slug, $value));
-
-        if ($subscription === null) {
-            throw new \InvalidArgumentException("No active subscription can use the feature '$slug'");
-        }
+        $subscription = SubscriptionService::validateActiveSubscription($this);
 
         return $subscription->useFeature($slug, $value);
     }

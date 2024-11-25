@@ -255,7 +255,7 @@ php artisan migrate
     // Through subscriber's active subscriptions
     $user->featuresUsage();
     $user->featureUsage('api-calls');
-    $user->feature('premium-support');
+    $user->planFeature('premium-support');
     $user->usableFeature('api-calls', 1); // returns collection of PlanFeature that can be used given the passed value
     $user->hasActiveFeature('unlimited-storage');
     $user->canUseFeature('api-calls', 1);
@@ -266,7 +266,7 @@ php artisan migrate
     // Through specific subscription
     $subscription->featuresUsage()->get();
     $subscription->featureUsage('api-calls')->get();
-    $subscription->feature('premium-support');
+    $subscription->planFeature('premium-support');
     $subscription->hasFeature('premium-support'); // Return true if subscription has the feature (regardless of subscription status)
     $subscription->hasActiveFeature('premium-support'); // Return true if subscription is active and has the feature
     $subscription->remainingFeatureUsage('api-calls');

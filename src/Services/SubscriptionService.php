@@ -4,24 +4,42 @@ namespace Err0r\Larasub\Services;
 
 use Carbon\Carbon;
 use Err0r\Larasub\Facades\PeriodService;
+use Err0r\Larasub\Models\PlanFeature;
 use Illuminate\Database\Eloquent\Collection;
 
 final class SubscriptionService
 {
     /**
      * @param  \Err0r\Larasub\Models\Subscription  $subscription
+     * @return PlanFeature
      *
      * @throws \InvalidArgumentException
      */
     private function validateSubscriptionFeature($subscription, string $slug)
     {
-        $planFeature = $subscription->plan->feature($slug)->first();
+        $planFeature = $subscription->planFeature($slug);
 
         if ($planFeature === null) {
             throw new \InvalidArgumentException("The feature '$slug' is not part of the plan");
         }
 
         return $planFeature;
+    }
+
+    /**
+     * @return \Err0r\Larasub\Models\Subscription
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function validateActiveSubscription($subscriber)
+    {
+        $subscription = $subscriber->activeSubscription();
+
+        if (! $subscription) {
+            throw new \InvalidArgumentException('No active subscription found.');
+        }
+
+        return $subscription;
     }
 
     /**

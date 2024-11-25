@@ -61,14 +61,6 @@ class Plan extends Model
     }
 
     /**
-     * @return HasMany<PlanFeature>
-     */
-    public function feature(string $slug): HasMany
-    {
-        return $this->features()->whereHas('feature', fn ($q) => $q->where('slug', $slug));
-    }
-
-    /**
      * @return HasMany<Subscription>
      */
     public function subscriptions(): HasMany
@@ -79,6 +71,16 @@ class Plan extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * @return PlanFeature|null
+     */
+    public function feature(string $slug)
+    {
+        $this->load('features.feature');
+
+        return $this->features->first(fn ($feature) => $feature->feature->slug === $slug);
     }
 
     public function isActive(): bool
