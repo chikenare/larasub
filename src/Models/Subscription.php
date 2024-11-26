@@ -74,7 +74,8 @@ class Subscription extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('start_at', '<=', now())
+        return $query
+            ->where('start_at', '<=', now())
             ->where(
                 fn ($q) => $q->whereNull('end_at')
                     ->orWhere('end_at', '>=', now())
@@ -83,7 +84,7 @@ class Subscription extends Model
 
     public function scopePending(Builder $query): Builder
     {
-        return $query->whereNull('start_at');
+        return $query->whereNull('start_at')->whereNull('cancelled_at');
     }
 
     public function scopeCancelled(Builder $query): Builder
@@ -198,7 +199,7 @@ class Subscription extends Model
      */
     public function isPending(): bool
     {
-        return $this->start_at === null;
+        return $this->start_at === null && ! $this->isCancelled();
     }
 
     /**
@@ -246,10 +247,9 @@ class Subscription extends Model
     public function cancel(?bool $immediately = false): bool
     {
         $this->cancelled_at = now();
-        $this->start_at ??= now();
 
         if ($immediately || $this->end_at === null) {
-            $this->end_at = now();
+            $this->end_at = $this->cancelled_at;
         }
 
         return $this->save();
