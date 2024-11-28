@@ -28,7 +28,7 @@ class Feature extends Model
         'slug',
         'name',
         'description',
-        'consumable',
+        'type',
         'sort_order',
     ];
 
