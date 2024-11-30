@@ -5,11 +5,11 @@ namespace Err0r\Larasub\Models;
 use Err0r\Larasub\Enums\FeatureValue;
 use Err0r\Larasub\Enums\Period;
 use Err0r\Larasub\Traits\Sortable;
+use Err0r\Larasub\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Translatable\HasTranslations;
 
 class PlanFeature extends Model
 {

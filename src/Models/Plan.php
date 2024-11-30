@@ -6,13 +6,13 @@ use Err0r\Larasub\Builders\PlanBuilder;
 use Err0r\Larasub\Enums\Period;
 use Err0r\Larasub\Traits\Sluggable;
 use Err0r\Larasub\Traits\Sortable;
+use Err0r\Larasub\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Translatable\HasTranslations;
 
 class Plan extends Model
 {
